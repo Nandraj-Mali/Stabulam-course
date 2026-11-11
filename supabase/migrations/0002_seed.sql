@@ -3,7 +3,7 @@
 insert into public.site_settings (id, brand_name, brand_tagline, hero, whatsapp_number, whatsapp_message, footer_text, certificate)
 values (
   1,
-  'NextGen',
+  'Stabulam',
   'School',
   jsonb_build_object(
     'eyebrow', 'SELF-PACED ◆ 10 MODULES ◆ 2 HOURS',
@@ -20,8 +20,8 @@ values (
   ),
   '919999999999',
   'Hi! I have a question about the Digital Marketing for Schools course.',
-  '© NextGen. All rights reserved.',
-  jsonb_build_object('signatory_name', 'Course Director', 'signatory_title', 'NextGen')
+  '© Stabulam. All rights reserved.',
+  jsonb_build_object('signatory_name', 'Course Director', 'signatory_title', 'Stabulam')
 )
 on conflict (id) do nothing;
 

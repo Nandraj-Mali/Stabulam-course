@@ -1,4 +1,4 @@
-# NextGen Portal
+# Stabulam Course Platform
 
 A free course platform for schools (digital marketing), built with **Next.js 15 + Supabase + Bunny Stream** and deployed on **Vercel**.
 See [`PLAN.md`](./PLAN.md) for the full product plan.

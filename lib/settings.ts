@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { SiteSettings } from "@/lib/types";
 
 export const DEFAULT_SETTINGS: SiteSettings = {
-  brand_name: "NextGen",
+  brand_name: "Stabulam",
   brand_tagline: "School",
   logo_url: null,
   hero: {
@@ -21,8 +21,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   },
   whatsapp_number: "919999999999",
   whatsapp_message: "Hi! I have a question about the course.",
-  footer_text: "© NextGen. All rights reserved.",
-  certificate: { signatory_name: "Course Director", signatory_title: "NextGen" },
+  footer_text: "© Stabulam. All rights reserved.",
+  certificate: { signatory_name: "Course Director", signatory_title: "Stabulam" },
 };
 
 export const getSettings = cache(async (): Promise<SiteSettings> => {

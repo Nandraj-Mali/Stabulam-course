@@ -30,7 +30,7 @@ export async function saveSettings(formData: FormData) {
 
   const row = {
     id: 1,
-    brand_name: str(formData, "brand_name") || "NextGen",
+    brand_name: str(formData, "brand_name") || "Stabulam",
     brand_tagline: str(formData, "brand_tagline") || null,
     logo_url: formData.get("remove_logo") ? null : logo ?? cur?.logo_url ?? null,
     hero: {

@@ -1,4 +1,4 @@
-# NextGen Portal: Full Build Plan
+# Stabulam: Full Build Plan
 
 **Product:** A free digital-marketing course for schools (1 course, 10 modules, about 2 hours of video) with locked progression, quizzes, timed popups, a free certificate and an admin panel.
 **Design:** Clean and minimal, in the style of growthschool.io (see the reference screenshot). Colors are **white, red and black**.

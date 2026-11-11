@@ -1,5 +1,5 @@
 -- =====================================================================
--- NextGen Portal: initial schema
+-- Stabulam: initial schema
 -- Run this whole file in Supabase → SQL Editor (or `supabase db push`).
 -- =====================================================================
 
@@ -28,13 +28,13 @@ create table if not exists public.profiles (
 
 create table if not exists public.site_settings (
   id int primary key default 1 check (id = 1),
-  brand_name text not null default 'NextGen',
+  brand_name text not null default 'Stabulam',
   brand_tagline text default 'School',
   logo_url text,
   hero jsonb not null default '{}'::jsonb,
   whatsapp_number text default '919999999999',
   whatsapp_message text default 'Hi! I have a question about the course.',
-  footer_text text default '© NextGen. All rights reserved.',
+  footer_text text default '© Stabulam. All rights reserved.',
   certificate jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
