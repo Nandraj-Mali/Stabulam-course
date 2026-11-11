@@ -1,103 +1,180 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Armchair, Award, CalendarDays, CheckCircle2, MonitorPlay, ShieldCheck, Timer } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { Countdown } from "@/components/Countdown";
+import { ModuleCard } from "@/components/ModuleCard";
+import { getSettings } from "@/lib/settings";
+import { createClient } from "@/lib/supabase/server";
+import { MODULE_COLUMNS, type Module } from "@/lib/types";
+import { fmtDuration } from "@/lib/format";
 
-export default function Home() {
+export const revalidate = 60;
+
+export default async function Home() {
+  const s = await getSettings();
+  const h = s.hero;
+  const supabase = await createClient();
+  const { data: course } = await supabase
+    .from("courses")
+    .select("id, slug, title, description")
+    .eq("is_published", true)
+    .order("created_at")
+    .limit(1)
+    .maybeSingle();
+  const { data: modules } = course
+    ? await supabase.from("modules").select(MODULE_COLUMNS).eq("course_id", course.id).eq("is_published", true).order("position")
+    : { data: [] as Module[] };
+  const mods = (modules ?? []) as Module[];
+  const totalSec = mods.reduce((a, m) => a + (m.duration_seconds || 0), 0);
+
+  const slotsTotal = Math.max(1, Math.min(20, Number(h.slots_total ?? 11)));
+  const slotsFilled = Math.min(slotsTotal, Number(h.slots_filled ?? 9));
+  const slotsLeft = slotsTotal - slotsFilled;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <>
+      <Navbar />
+      <main className="mx-auto max-w-[1240px] px-4 sm:px-6">
+        {/* HERO */}
+        <section className="grid-bg relative mt-6 overflow-hidden rounded-[28px] px-6 py-12 text-white sm:px-14 sm:py-16">
+          <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-brand/20 blur-3xl" />
+          <div className="relative grid items-center gap-12 lg:grid-cols-[1.4fr_1fr]">
+            <div>
+              <p className="eyebrow">{h.eyebrow}</p>
+              <h1 className="mt-4 text-4xl font-bold leading-[1.08] sm:text-6xl">{h.title}</h1>
+              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/90 sm:text-xl">{h.subtitle}</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                {(h.badges ?? []).map((b, i) => (
+                  <span key={b} className="pill">
+                    {i === 0 && <CalendarDays className="h-4 w-4" />}
+                    {b}
+                  </span>
+                ))}
+              </div>
+              <Link
+                href="/signup"
+                className="mt-10 inline-flex items-center gap-2 rounded-xl border-2 border-brand bg-brand px-7 py-4 text-lg font-medium text-white transition hover:bg-brand-dark"
+              >
+                {h.cta_text} {h.value_price && <s className="opacity-80">{h.value_price}</s>} Free
+              </Link>
+            </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+            <div className="dots-bg rounded-[28px] p-8 text-ink sm:p-10">
+              <p className="flex items-center gap-2 text-xl font-medium">
+                <Timer className="h-6 w-6 text-brand" /> {h.offer_title}
+              </p>
+              <div className="mt-5 flex flex-wrap gap-1.5">
+                {Array.from({ length: slotsTotal }).map((_, i) => (
+                  <Armchair key={i} className={`h-7 w-7 ${i < slotsFilled ? "text-ink" : "text-muted/40"}`} strokeWidth={i < slotsFilled ? 2.4 : 1.6} />
+                ))}
+              </div>
+              {slotsLeft > 0 && <p className="mt-2 text-sm text-muted">Only {slotsLeft} free seats left in this batch</p>}
+              {h.value_price && (
+                <>
+                  <p className="mt-8 text-lg">
+                    Total Value: <span className="font-semibold">{h.value_price}</span>
+                  </p>
+                  <p className="text-muted">Today you can get it for</p>
+                </>
+              )}
+              <p className="mt-3 text-5xl font-bold tracking-tight">FREE</p>
+              {h.countdown_end && (
+                <>
+                  <p className="mt-8 text-muted">This special offer ends in</p>
+                  <p className="mt-1 text-2xl font-medium">
+                    <Countdown end={h.countdown_end} />
+                  </p>
+                </>
+              )}
+              {h.certificate_note && (
+                <p className="mt-6 rounded-lg bg-white px-3 py-2 text-sm font-medium">{h.certificate_note}</p>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* STATS */}
+        <section className="mt-16 grid gap-4 sm:grid-cols-3">
+          {[
+            { icon: MonitorPlay, t: `${mods.length || 10} video modules`, d: `${totalSec ? fmtDuration(totalSec) : "About 2 hours"} of focused, practical training` },
+            { icon: ShieldCheck, t: "Learn step by step", d: "Each module unlocks after you finish the previous one" },
+            { icon: Award, t: "Free certificate", d: "Download your certificate once you complete all modules" },
+          ].map(({ icon: Icon, t, d }) => (
+            <div key={t} className="card p-6">
+              <Icon className="h-7 w-7 text-brand" />
+              <h3 className="mt-4 text-xl font-semibold">{t}</h3>
+              <p className="mt-1 text-muted">{d}</p>
+            </div>
+          ))}
+        </section>
+
+        {/* MODULES */}
+        <section id="modules" className="mt-24 scroll-mt-10">
+          <p className="eyebrow">Course curriculum</p>
+          <h2 className="mt-2 text-3xl font-bold sm:text-5xl">{course?.title ?? h.title}</h2>
+          {course?.description && <p className="mt-4 max-w-3xl text-lg text-muted">{course.description}</p>}
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {mods.map((m) => (
+              <ModuleCard key={m.id} position={m.position} title={m.title} subtitle={m.subtitle} cover={m.cover_url} duration={m.duration_seconds} />
+            ))}
+          </div>
+        </section>
+
+        {/* CERTIFICATE */}
+        <section id="certificate" className="mt-24 scroll-mt-10">
+          <div className="dots-bg grid items-center gap-10 rounded-[28px] p-8 sm:p-14 lg:grid-cols-2">
+            <div>
+              <p className="eyebrow">Free certificate</p>
+              <h2 className="mt-2 text-3xl font-bold sm:text-5xl">Finish the course, get certified</h2>
+              <p className="mt-4 text-lg text-muted">
+                Complete all modules and quizzes to download a verified certificate with your name, school and designation. Share it on LinkedIn or show it to your management.
+              </p>
+              <ul className="mt-6 space-y-2.5">
+                {["100% free, no hidden charges", "Verifiable with a unique certificate ID", "Instant PDF download"].map((x) => (
+                  <li key={x} className="flex items-center gap-2.5">
+                    <CheckCircle2 className="h-5 w-5 text-brand" /> {x}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/signup" className="btn-primary mt-8 px-7 py-3.5 text-base">Start learning for free</Link>
+            </div>
+            <div className="rounded-2xl border-[10px] border-ink bg-white p-8 text-center shadow-xl">
+              <p className="text-xs font-bold tracking-[0.3em] text-brand">CERTIFICATE OF COMPLETION</p>
+              <p className="mt-6 text-sm text-muted">This is to certify that</p>
+              <p className="mt-2 text-3xl font-bold">Your Name</p>
+              <p className="mt-1 text-muted">Principal, Your School</p>
+              <p className="mt-6 text-sm text-muted">has successfully completed</p>
+              <p className="mt-1 text-xl font-semibold">{course?.title ?? h.title}</p>
+              <div className="mx-auto mt-8 h-px w-40 bg-line" />
+              <p className="mt-2 text-xs text-muted">{s.certificate.signatory_name}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="mx-auto mt-24 max-w-3xl">
+          <h2 className="text-center text-3xl font-bold sm:text-4xl">Frequently asked questions</h2>
+          <div className="mt-8 divide-y divide-line rounded-2xl border border-line">
+            {[
+              ["Is the course really free?", "Yes. The course and the certificate are completely free."],
+              ["Who is this course for?", "School owners, principals, coordinators, admission teams and anyone handling marketing for a school."],
+              ["How long is the course?", "Around 2 hours split across 10 short modules. Learn at your own pace."],
+              ["Do I need any technical knowledge?", "No. Everything is explained step by step with real school examples."],
+              ["How do I get the certificate?", "Watch all modules and pass the short quizzes. Your certificate becomes available instantly."],
+            ].map(([q, a]) => (
+              <details key={q} className="group p-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between text-lg font-medium">
+                  {q}
+                  <span className="text-2xl text-brand transition group-open:rotate-45">+</span>
+                </summary>
+                <p className="mt-3 text-muted">{a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      <Footer />
+    </>
   );
 }

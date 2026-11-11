@@ -1,26 +1,79 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-ink: #0b0b0c;
+  --color-ink-2: #2a2a2e;
+  --color-muted: #6b6b73;
+  --color-cream: #faf7f2;
+  --color-line: #e7e5e4;
+  --color-brand: #e11d2e;
+  --color-brand-dark: #b91524;
+  --color-brand-soft: #fdecee;
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html {
+  color-scheme: light;
+}
+body {
+  background: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.grid-bg {
+  background-color: var(--color-ink);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+.dots-bg {
+  background-color: var(--color-cream);
+  background-image: radial-gradient(rgba(11, 11, 12, 0.12) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 }
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility btn-primary {
+  @apply btn bg-brand text-white hover:bg-brand-dark;
+}
+@utility btn-dark {
+  @apply btn bg-ink text-white hover:bg-ink-2;
+}
+@utility btn-outline {
+  @apply btn border border-ink bg-white text-ink hover:bg-cream;
+}
+@utility btn-ghost {
+  @apply btn text-ink hover:bg-cream;
+}
+@utility input {
+  @apply w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-[15px] outline-none transition focus:border-ink focus:ring-2 focus:ring-ink/10;
+}
+@utility label {
+  @apply mb-1.5 block text-sm font-medium text-ink-2;
+}
+@utility card {
+  @apply rounded-2xl border border-line bg-white;
+}
+@utility pill {
+  @apply inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold uppercase tracking-wide text-ink;
+}
+@utility eyebrow {
+  @apply text-sm font-semibold uppercase tracking-wide text-brand;
 }
