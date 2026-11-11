@@ -25,7 +25,7 @@ function ErrorBox({ msg }: { msg?: string }) {
 export function SignupForm() {
   const [state, action, pending] = useActionState(signUp, undefined);
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="space-y-3">
       <div>
         <label className="label">Full name</label>
         <input name="full_name" required autoComplete="name" className="input" placeholder="e.g. Priya Sharma" />
@@ -43,7 +43,7 @@ export function SignupForm() {
         <PasswordInput name="password" autoComplete="new-password" />
       </div>
       <ErrorBox msg={state?.error} />
-      <button disabled={pending} className="btn-primary w-full py-3">
+      <button disabled={pending} className="btn-primary w-full py-2.5">
         {pending && <Loader2 className="h-4 w-4 animate-spin" />} Create free account
       </button>
       <p className="text-center text-sm text-muted">
@@ -56,7 +56,7 @@ export function SignupForm() {
 export function LoginForm({ next }: { next?: string }) {
   const [state, action, pending] = useActionState(signIn, undefined);
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="space-y-3">
       <input type="hidden" name="next" value={next ?? ""} />
       <div>
         <label className="label">Email or phone number</label>
@@ -67,7 +67,7 @@ export function LoginForm({ next }: { next?: string }) {
         <PasswordInput name="password" autoComplete="current-password" />
       </div>
       <ErrorBox msg={state?.error} />
-      <button disabled={pending} className="btn-dark w-full py-3">
+      <button disabled={pending} className="btn-dark w-full py-2.5">
         {pending && <Loader2 className="h-4 w-4 animate-spin" />} Log in
       </button>
       <p className="text-center text-sm text-muted">

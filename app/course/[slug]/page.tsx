@@ -32,7 +32,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
           </div>
         </div>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {data.modules.map((m) => (
             <ModuleCard
               key={m.id}

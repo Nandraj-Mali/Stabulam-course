@@ -37,16 +37,16 @@ export default async function Home() {
       <Navbar />
       <main className="mx-auto max-w-[1240px] px-4 sm:px-6">
         {/* HERO */}
-        <section className="grid-bg relative mt-6 overflow-hidden rounded-[28px] px-6 py-12 text-white sm:px-14 sm:py-16">
+        <section className="grid-bg relative mt-2 flex overflow-hidden rounded-[24px] px-5 py-8 text-white sm:px-10 sm:py-10 lg:min-h-[calc(100svh-120px)] lg:max-h-[640px] lg:items-center lg:px-12">
           <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-brand/20 blur-3xl" />
-          <div className="relative grid items-center gap-12 lg:grid-cols-[1.4fr_1fr]">
+          <div className="relative grid w-full items-center gap-8 lg:grid-cols-[1.45fr_1fr] lg:gap-10">
             <div>
-              <p className="eyebrow">{h.eyebrow}</p>
-              <h1 className="mt-4 text-4xl font-bold leading-[1.08] sm:text-6xl">{h.title}</h1>
-              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/90 sm:text-xl">{h.subtitle}</p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <p className="eyebrow text-xs sm:text-sm">{h.eyebrow}</p>
+              <h1 className="mt-3 text-3xl font-bold leading-[1.1] sm:text-4xl xl:text-5xl">{h.title}</h1>
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">{h.subtitle}</p>
+              <div className="mt-5 flex flex-wrap gap-2">
                 {(h.badges ?? []).map((b, i) => (
-                  <span key={b} className="pill">
+                  <span key={b} className="pill px-3 py-2 text-xs sm:text-[13px]">
                     {i === 0 && <CalendarDays className="h-4 w-4" />}
                     {b}
                   </span>
@@ -54,41 +54,41 @@ export default async function Home() {
               </div>
               <Link
                 href="/signup"
-                className="mt-10 inline-flex items-center gap-2 rounded-xl border-2 border-brand bg-brand px-7 py-4 text-lg font-medium text-white transition hover:bg-brand-dark"
+                className="mt-7 inline-flex items-center gap-2 rounded-xl border-2 border-brand bg-brand px-6 py-3 text-base font-medium text-white transition hover:bg-brand-dark sm:text-lg"
               >
                 {h.cta_text} {h.value_price && <s className="opacity-80">{h.value_price}</s>} Free
               </Link>
             </div>
 
-            <div className="dots-bg rounded-[28px] p-8 text-ink sm:p-10">
-              <p className="flex items-center gap-2 text-xl font-medium">
-                <Timer className="h-6 w-6 text-brand" /> {h.offer_title}
+            <div className="dots-bg rounded-[22px] p-6 text-ink sm:p-7">
+              <p className="flex items-center gap-2 text-lg font-medium">
+                <Timer className="h-5 w-5 text-brand" /> {h.offer_title}
               </p>
-              <div className="mt-5 flex flex-wrap gap-1.5">
+              <div className="mt-3 flex flex-wrap gap-1">
                 {Array.from({ length: slotsTotal }).map((_, i) => (
-                  <Armchair key={i} className={`h-7 w-7 ${i < slotsFilled ? "text-ink" : "text-muted/40"}`} strokeWidth={i < slotsFilled ? 2.4 : 1.6} />
+                  <Armchair key={i} className={`h-6 w-6 ${i < slotsFilled ? "text-ink" : "text-muted/40"}`} strokeWidth={i < slotsFilled ? 2.4 : 1.6} />
                 ))}
               </div>
-              {slotsLeft > 0 && <p className="mt-2 text-sm text-muted">Only {slotsLeft} free seats left in this batch</p>}
+              {slotsLeft > 0 && <p className="mt-1.5 text-xs text-muted">Only {slotsLeft} free seats left in this batch</p>}
               {h.value_price && (
                 <>
-                  <p className="mt-8 text-lg">
+                  <p className="mt-5">
                     Total Value: <span className="font-semibold">{h.value_price}</span>
                   </p>
-                  <p className="text-muted">Today you can get it for</p>
+                  <p className="text-sm text-muted">Today you can get it for</p>
                 </>
               )}
-              <p className="mt-3 text-5xl font-bold tracking-tight">FREE</p>
+              <p className="mt-2 text-4xl font-bold tracking-tight">FREE</p>
               {h.countdown_end && (
                 <>
-                  <p className="mt-8 text-muted">This special offer ends in</p>
-                  <p className="mt-1 text-2xl font-medium">
+                  <p className="mt-5 text-sm text-muted">This special offer ends in</p>
+                  <p className="mt-0.5 text-xl font-medium">
                     <Countdown end={h.countdown_end} />
                   </p>
                 </>
               )}
               {h.certificate_note && (
-                <p className="mt-6 rounded-lg bg-white px-3 py-2 text-sm font-medium">{h.certificate_note}</p>
+                <p className="mt-4 rounded-lg bg-white px-3 py-2 text-sm font-medium">{h.certificate_note}</p>
               )}
             </div>
           </div>
@@ -114,7 +114,7 @@ export default async function Home() {
           <p className="eyebrow">Course curriculum</p>
           <h2 className="mt-2 text-3xl font-bold sm:text-5xl">{course?.title ?? h.title}</h2>
           {course?.description && <p className="mt-4 max-w-3xl text-lg text-muted">{course.description}</p>}
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {mods.map((m) => (
               <ModuleCard key={m.id} position={m.position} title={m.title} subtitle={m.subtitle} cover={m.cover_url} duration={m.duration_seconds} />
             ))}

@@ -8,7 +8,7 @@ export async function Navbar() {
   const s = await getSettings();
   const { user, profile } = await getSessionProfile();
   return (
-    <header className="mx-auto flex max-w-[1240px] items-center justify-between gap-3 px-4 py-6 sm:px-6">
+    <header className="mx-auto flex max-w-[1240px] items-center justify-between gap-3 px-4 py-4 sm:px-6">
       <div className="flex items-center gap-10">
         <Logo s={s} />
         <nav className="hidden items-center gap-8 text-[17px] text-ink md:flex">
