@@ -31,6 +31,13 @@ export default async function ModulePage({ params }: { params: Promise<{ slug: s
   ]);
   const embedUrl = src?.video_provider_id ? bunnyEmbedUrl(src.video_provider_id) : null;
   const directUrl = !embedUrl ? src?.video_url ?? null : null;
+  let setupIssue: string | null = null;
+  if (profile.role === "admin") {
+    if (src?.video_provider_id && !process.env.BUNNY_STREAM_LIBRARY_ID)
+      setupIssue = "A Bunny video ID is saved, but BUNNY_STREAM_LIBRARY_ID is not set on the server. Add it in Vercel → Settings → Environment Variables, then redeploy.";
+    else if (!src?.video_provider_id && !src?.video_url)
+      setupIssue = "No video is attached. Paste the Bunny Video ID in Admin → Course & modules → this module.";
+  }
 
   return (
     <>
@@ -50,6 +57,7 @@ export default async function ModulePage({ params }: { params: Promise<{ slug: s
           embedUrl={embedUrl}
           directUrl={directUrl}
           watermark={profile.email}
+          setupIssue={setupIssue}
           duration={mod.duration_seconds}
           startAt={mod.progress?.last_position ?? 0}
           maxPosition={mod.progress?.max_position ?? 0}

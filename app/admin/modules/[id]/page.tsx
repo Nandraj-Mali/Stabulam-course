@@ -68,6 +68,11 @@ export default async function EditModule({
             <label className="label">Bunny Stream video ID (GUID)</label>
             <input name="video_provider_id" defaultValue={m?.video_provider_id ?? ""} className="input font-mono text-sm" placeholder="e.g. 8a7f3c1e-1234-4b5c-9d0e-abcdef123456" />
             <p className="mt-1 text-xs text-muted">Upload the video in your Bunny Stream library, then paste its Video ID here. The real link is never shown to students.</p>
+            {!process.env.BUNNY_STREAM_LIBRARY_ID && (
+              <p className="mt-2 rounded-lg bg-brand-soft px-3 py-2 text-xs text-brand-dark">
+                ⚠ BUNNY_STREAM_LIBRARY_ID is not set on the server, so Bunny videos can&apos;t play yet. Add it (and BUNNY_STREAM_TOKEN_KEY if token authentication is on) in Vercel → Settings → Environment Variables, then redeploy.
+              </p>
+            )}
           </div>
           <div>
             <label className="label">Or direct MP4 URL (testing only)</label>

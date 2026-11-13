@@ -19,6 +19,7 @@ type Props = {
   embedUrl: string | null;
   directUrl: string | null;
   watermark: string;
+  setupIssue?: string | null;
   duration: number;
   startAt: number;
   maxPosition: number;
@@ -224,6 +225,9 @@ export function ModuleExperience(p: Props) {
               <div>
                 <PlayCircle className="mx-auto h-14 w-14 text-brand" />
                 <p className="mt-3 text-lg">Video coming soon</p>
+                {p.setupIssue && (
+                  <p className="mx-auto mt-3 max-w-md rounded-lg bg-brand/90 px-4 py-2 text-sm text-white">Admin only: {p.setupIssue}</p>
+                )}
               </div>
             </div>
           )}
