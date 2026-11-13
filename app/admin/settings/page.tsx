@@ -2,6 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 import { getSettings } from "@/lib/settings";
 import { saveSettings } from "../actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { ImageField } from "@/components/admin/ImageField";
 
 export const dynamic = "force-dynamic";
 
@@ -32,15 +33,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <div><label className="label">Brand name</label><input name="brand_name" defaultValue={s.brand_name} className="input" /></div>
           <div><label className="label">Tagline (second line of logo)</label><input name="brand_tagline" defaultValue={s.brand_tagline ?? ""} className="input" /></div>
           <div className="sm:col-span-2">
-            <label className="label">Logo image (replaces the text logo)</label>
-            <div className="flex flex-wrap items-center gap-4">
-              {s.logo_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.logo_url} alt="" className="h-10 w-auto" />
-              )}
-              <input type="file" name="logo" accept="image/*" className="text-sm" />
-              {s.logo_url && <label className="flex items-center gap-2 text-sm text-muted"><input type="checkbox" name="remove_logo" /> Remove logo</label>}
-            </div>
+            <label className="label">Header logo (PNG with transparent background works best)</label>
+            <ImageField name="logo_url" initial={s.logo_url} folder="brand" previewClass="h-16 w-44" hint="Replaces the text logo in the header. Recommended height ~120px, wide format." />
           </div>
           <div><label className="label">Footer line 1 (left)</label><input name="footer_text" defaultValue={s.footer_text ?? ""} className="input" /></div>
           <div><label className="label">Footer line 2 (right)</label><input name="footer_text_2" defaultValue={s.footer_text_2 ?? ""} className="input" placeholder="Leave empty to hide" /></div>
@@ -56,14 +50,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <div><label className="label">Crossed-out value (e.g. ₹4,999)</label><input name="value_price" defaultValue={h.value_price} className="input" /></div>
           <div className="sm:col-span-2">
             <label className="label">Hero image (right side of the black hero, 4:3 recommended)</label>
-            <div className="flex flex-wrap items-center gap-4">
-              {h.image_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={h.image_url} alt="" className="h-20 w-28 rounded-lg object-cover" />
-              )}
-              <input type="file" name="hero_image" accept="image/*" className="text-sm" />
-              {h.image_url && <label className="flex items-center gap-2 text-sm text-muted"><input type="checkbox" name="remove_hero_image" /> Remove image</label>}
-            </div>
+            <ImageField name="hero_image_url" initial={h.image_url} folder="hero" previewClass="h-20 w-28" />
           </div>
           <div className="sm:col-span-2"><label className="label">Seats strip title (below the hero)</label><input name="offer_title" defaultValue={h.offer_title} className="input" /></div>
           <div><label className="label">Total seats shown</label><input name="slots_total" type="number" min={0} max={20} defaultValue={h.slots_total} className="input" /></div>
@@ -79,6 +66,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <div><label className="label">Pre-filled message</label><input name="whatsapp_message" defaultValue={s.whatsapp_message ?? ""} className="input" /></div>
           <div><label className="label">Certificate signatory name</label><input name="signatory_name" defaultValue={s.certificate.signatory_name ?? ""} className="input" /></div>
           <div><label className="label">Signatory title</label><input name="signatory_title" defaultValue={s.certificate.signatory_title ?? ""} className="input" /></div>
+          <div className="sm:col-span-2">
+            <label className="label">Signature on certificate (transparent PNG)</label>
+            <ImageField name="signature_url" initial={s.certificate.signature_url} folder="signature" previewClass="h-16 w-44" hint="Sign on white paper, photograph or scan it, remove the background (e.g. remove.bg) and upload as PNG." />
+          </div>
+          <div className="sm:col-span-2">
+            <a href="/api/certificate/preview" target="_blank" className="btn-outline text-sm">Preview certificate design</a>
+            <p className="mt-1 text-xs text-muted">Save first to preview the latest logo and signature.</p>
+          </div>
         </fieldset>
 
         <div className="flex justify-end">

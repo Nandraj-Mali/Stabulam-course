@@ -13,8 +13,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const s = await getSettings();
   const origin = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
   const bytes = await renderCertificate({
-    ...cert,
+    id: cert.id,
+    full_name: cert.full_name,
+    course_title: cert.course_title,
+    issued_at: cert.issued_at,
     brand_name: s.brand_name,
+    logo_url: s.logo_url,
+    signature_url: s.certificate.signature_url,
     signatory_name: s.certificate.signatory_name,
     signatory_title: s.certificate.signatory_title,
     verify_url: `${origin}/verify/${cert.id}`,
@@ -24,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="certificate-${cert.id}.pdf"`,
-      "Cache-Control": "private, max-age=300",
+      "Cache-Control": "private, max-age=60",
     },
   });
 }

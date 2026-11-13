@@ -9,31 +9,25 @@ import { createClient } from "@/lib/supabase/server";
 const str = (f: FormData, k: string) => (f.get(k) as string | null)?.trim() ?? "";
 const lines = (v: string) => v.split("\n").map((s) => s.trim()).filter(Boolean);
 
-async function uploadImage(file: File | null, folder: string) {
-  if (!file || file.size === 0) return null;
-  if (!file.type.startsWith("image/")) throw new Error("Please upload an image file");
-  const admin = createAdminClient();
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { error } = await admin.storage.from("public-assets").upload(path, file, { contentType: file.type, upsert: false });
-  if (error) throw new Error(error.message);
-  return admin.storage.from("public-assets").getPublicUrl(path).data.publicUrl;
+/** Accept only images that live in our own public-assets bucket (uploaded by ImageField). */
+function assetUrl(f: FormData, k: string): string | null {
+  const v = str(f, k);
+  if (!v) return null;
+  const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/public-assets/`;
+  return v.startsWith(base) ? v : null;
 }
 
 /* ---------------- Site settings ---------------- */
 export async function saveSettings(formData: FormData) {
   await requireAdmin();
   const admin = createAdminClient();
-  const { data: cur } = await admin.from("site_settings").select("*").eq("id", 1).maybeSingle();
-  const logo = await uploadImage(formData.get("logo") as File | null, "brand");
-  const heroImg = await uploadImage(formData.get("hero_image") as File | null, "hero");
   const countdown = str(formData, "countdown_end");
 
   const row = {
     id: 1,
     brand_name: str(formData, "brand_name") || "Stabulam",
     brand_tagline: str(formData, "brand_tagline") || null,
-    logo_url: formData.get("remove_logo") ? null : logo ?? cur?.logo_url ?? null,
+    logo_url: assetUrl(formData, "logo_url"),
     hero: {
       eyebrow: str(formData, "eyebrow"),
       title: str(formData, "title"),
@@ -47,7 +41,7 @@ export async function saveSettings(formData: FormData) {
       countdown_end: countdown ? new Date(countdown).toISOString() : "",
       certificate_note: str(formData, "certificate_note"),
       auth_title: str(formData, "auth_title"),
-      image_url: formData.get("remove_hero_image") ? "" : heroImg ?? cur?.hero?.image_url ?? "",
+      image_url: assetUrl(formData, "hero_image_url") ?? "",
     },
     whatsapp_number: str(formData, "whatsapp_number").replace(/\D/g, ""),
     whatsapp_message: str(formData, "whatsapp_message"),
@@ -56,6 +50,7 @@ export async function saveSettings(formData: FormData) {
     certificate: {
       signatory_name: str(formData, "signatory_name"),
       signatory_title: str(formData, "signatory_title"),
+      signature_url: assetUrl(formData, "signature_url") ?? "",
     },
     updated_at: new Date().toISOString(),
   };
@@ -76,9 +71,7 @@ export async function saveCourse(formData: FormData) {
     description: str(formData, "description"),
     is_published: formData.get("is_published") === "on",
   };
-  const cover = await uploadImage(formData.get("cover") as File | null, "courses");
-  if (cover) Object.assign(row, { cover_url: cover });
-  if (formData.get("remove_cover")) Object.assign(row, { cover_url: null });
+  Object.assign(row, { cover_url: assetUrl(formData, "cover_url") });
   const { error } = id ? await admin.from("courses").update(row).eq("id", id) : await admin.from("courses").insert(row);
   if (error) throw new Error(error.message);
   revalidatePath("/", "layout");
@@ -90,7 +83,6 @@ export async function saveModule(formData: FormData) {
   await requireAdmin();
   const admin = createAdminClient();
   const id = str(formData, "id");
-  const cover = await uploadImage(formData.get("cover") as File | null, "modules");
   const mins = Number(str(formData, "duration_minutes")) || 0;
 
   let resources: unknown[] = [];
@@ -126,8 +118,7 @@ export async function saveModule(formData: FormData) {
     },
     is_published: formData.get("is_published") === "on",
   };
-  if (cover) row.cover_url = cover;
-  if (formData.get("remove_cover")) row.cover_url = null;
+  row.cover_url = assetUrl(formData, "cover_url");
 
   if (id) {
     const { error } = await admin.from("modules").update(row).eq("id", id);

@@ -216,7 +216,7 @@ export default async function Home() {
               <p className="eyebrow">Free certificate</p>
               <h2 className="mt-2 text-3xl font-bold sm:text-4xl">Finish the course, get certified</h2>
               <p className="mt-4 text-lg text-muted">
-                Complete all modules to download a verified certificate with your name, school and designation.
+                Complete all modules to download a verified certificate with your name.
               </p>
               <ul className="mt-6 space-y-2.5">
                 {["100% free, no hidden charges", "Verifiable with a unique certificate ID", "Instant PDF download"].map((x) => (
@@ -231,7 +231,6 @@ export default async function Home() {
               <p className="text-xs font-bold tracking-[0.3em] text-brand">CERTIFICATE OF COMPLETION</p>
               <p className="mt-6 text-sm text-muted">This is to certify that</p>
               <p className="mt-2 text-3xl font-bold">Your Name</p>
-              <p className="mt-1 text-muted">Principal, Your School</p>
               <p className="mt-6 text-sm text-muted">has successfully completed</p>
               <p className="mt-1 text-xl font-semibold">{course?.title ?? h.title}</p>
               <div className="mx-auto mt-8 h-px w-40 bg-line" />

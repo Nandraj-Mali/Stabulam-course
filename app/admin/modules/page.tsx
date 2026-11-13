@@ -3,6 +3,7 @@ import { Plus, Bell, Video, VideoOff } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fmtDuration, pad2 } from "@/lib/format";
 import { saveCourse } from "../actions";
+import { ImageField } from "@/components/admin/ImageField";
 
 export const dynamic = "force-dynamic";
 
@@ -38,14 +39,7 @@ export default async function ModulesAdmin() {
                 <div className="sm:col-span-2"><label className="label">Description</label><textarea name="description" defaultValue={c.description ?? ""} rows={3} className="input" /></div>
                 <div className="sm:col-span-2">
                   <label className="label">Course thumbnail (shown on the home page, 16:9 recommended)</label>
-                  <div className="flex flex-wrap items-center gap-4">
-                    {c.cover_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.cover_url} alt="" className="h-20 w-36 rounded-lg object-cover" />
-                    )}
-                    <input type="file" name="cover" accept="image/*" className="text-sm" />
-                    {c.cover_url && <label className="flex items-center gap-2 text-sm text-muted"><input type="checkbox" name="remove_cover" /> Remove</label>}
-                  </div>
+                  <ImageField name="cover_url" initial={c.cover_url} folder="courses" previewClass="h-20 w-36" />
                 </div>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="is_published" defaultChecked={c.is_published} className="accent-[#e11d2e]" /> Published</label>
                 <div className="sm:text-right"><button className="btn-dark">Save course</button></div>

@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, Trash2 } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { deleteModule, saveModule } from "../../actions";
 import { ResourcesEditor } from "./ResourcesEditor";
+import { ImageField } from "@/components/admin/ImageField";
 import type { Resource } from "@/lib/types";
 import { SubmitButton } from "@/components/SubmitButton";
 
@@ -47,15 +48,8 @@ export default async function EditModule({
           <div><label className="label">Title</label><input name="title" defaultValue={m?.title ?? ""} required className="input" /></div>
           <div className="sm:col-span-2"><label className="label">Subtitle (shown on the card)</label><input name="subtitle" defaultValue={m?.subtitle ?? ""} className="input" /></div>
           <div className="sm:col-span-2">
-            <label className="label">Cover image (big card image, 4:3 or 16:9 recommended)</label>
-            <div className="flex flex-wrap items-center gap-4">
-              {m?.cover_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={m.cover_url} alt="" className="h-20 w-32 rounded-lg object-cover" />
-              )}
-              <input name="cover" type="file" accept="image/*" className="text-sm" />
-              {m?.cover_url && <label className="flex items-center gap-2 text-sm text-muted"><input type="checkbox" name="remove_cover" /> Remove</label>}
-            </div>
+            <label className="label">Cover image (big card image, 16:9 recommended)</label>
+            <ImageField name="cover_url" initial={m?.cover_url} folder="modules" previewClass="h-20 w-36" />
           </div>
           <label className="flex items-center gap-2 text-sm sm:col-span-2">
             <input type="checkbox" name="is_published" defaultChecked={m?.is_published ?? true} className="accent-[#e11d2e]" /> Published (visible to students)

@@ -24,8 +24,6 @@ export default async function VerifyPage({ params }: { params: Promise<{ id: str
               <dl className="mt-6 space-y-3 text-left">
                 {[
                   ["Name", c.full_name],
-                  ["School", c.school_name],
-                  ["Designation", c.designation],
                   ["Course", c.course_title],
                   ["Issued on", fmtDate(c.issued_at)],
                   ["Certificate ID", c.id],

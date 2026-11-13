@@ -23,7 +23,7 @@ export type SiteSettings = {
   whatsapp_message: string | null;
   footer_text: string | null;
   footer_text_2: string | null;
-  certificate: { signatory_name?: string; signatory_title?: string };
+  certificate: { signatory_name?: string; signatory_title?: string; signature_url?: string };
 };
 
 export type Profile = {
