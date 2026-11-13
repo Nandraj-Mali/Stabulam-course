@@ -4,17 +4,19 @@ import { getSettings } from "@/lib/settings";
 import { getSessionProfile } from "@/lib/auth";
 import { signOut } from "@/app/(auth)/actions";
 
-export async function Navbar() {
+export async function Navbar({ marketing = false }: { marketing?: boolean } = {}) {
   const s = await getSettings();
   const { user, profile } = await getSessionProfile();
   return (
     <header className="mx-auto flex max-w-[1240px] items-center justify-between gap-3 px-4 py-4 sm:px-6">
       <div className="flex items-center gap-10">
         <Logo s={s} />
-        <nav className="hidden items-center gap-8 text-[17px] text-ink md:flex">
+        {marketing && (
+          <nav className="hidden items-center gap-8 text-[17px] text-ink md:flex">
           <Link href="/#modules" className="hover:text-brand">Modules</Link>
           <Link href="/#certificate" className="hover:text-brand">Certificate</Link>
-        </nav>
+          </nav>
+        )}
       </div>
       <div className="flex items-center gap-2 sm:gap-3">
         {user ? (

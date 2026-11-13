@@ -35,7 +35,7 @@ export default async function Home() {
 
   return (
     <>
-      <Navbar />
+      <Navbar marketing />
       <main className="mx-auto max-w-[1240px] px-4 sm:px-6">
         {/* HERO */}
         <section className="grid-bg relative mt-2 flex overflow-hidden rounded-[24px] px-5 py-8 text-white sm:px-10 sm:py-10 lg:min-h-[min(calc(100svh-120px),560px)] lg:items-center lg:px-12">
