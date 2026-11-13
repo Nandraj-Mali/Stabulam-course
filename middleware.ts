@@ -26,9 +26,9 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // refreshes the session cookie if needed; verifies the JWT locally when possible
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub ? { id: data.claims.sub } : null;
   const path = request.nextUrl.pathname;
 
   if (!user && PROTECTED.some((p) => path.startsWith(p))) {

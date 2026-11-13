@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -15,6 +15,12 @@ function assetUrl(f: FormData, k: string): string | null {
   if (!v) return null;
   const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/public-assets/`;
   return v.startsWith(base) ? v : null;
+}
+
+/** Clears cached settings/catalog and re-renders all pages after an admin change. */
+function refreshSite() {
+  revalidateTag("site");
+  revalidatePath("/", "layout");
 }
 
 /* ---------------- Site settings ---------------- */
@@ -56,7 +62,7 @@ export async function saveSettings(formData: FormData) {
   };
   const { error } = await admin.from("site_settings").upsert(row);
   if (error) throw new Error(error.message);
-  revalidatePath("/", "layout");
+  refreshSite();
   redirect("/admin/settings?saved=1");
 }
 
@@ -74,7 +80,7 @@ export async function saveCourse(formData: FormData) {
   Object.assign(row, { cover_url: assetUrl(formData, "cover_url") });
   const { error } = id ? await admin.from("courses").update(row).eq("id", id) : await admin.from("courses").insert(row);
   if (error) throw new Error(error.message);
-  revalidatePath("/", "layout");
+  refreshSite();
   redirect("/admin/modules?saved=1");
 }
 
@@ -124,12 +130,12 @@ export async function saveModule(formData: FormData) {
   if (id) {
     const { error } = await admin.from("modules").update(row).eq("id", id);
     if (error) throw new Error(error.message);
-    revalidatePath("/", "layout");
+    refreshSite();
     redirect(`/admin/modules/${id}?saved=1`);
   } else {
     const { data, error } = await admin.from("modules").insert(row).select("id").single();
     if (error) throw new Error(error.message);
-    revalidatePath("/", "layout");
+    refreshSite();
     redirect(`/admin/modules/${data.id}?saved=1`);
   }
 }
@@ -138,7 +144,7 @@ export async function deleteModule(formData: FormData) {
   await requireAdmin();
   const admin = createAdminClient();
   await admin.from("modules").delete().eq("id", str(formData, "id"));
-  revalidatePath("/", "layout");
+  refreshSite();
   redirect("/admin/modules");
 }
 
@@ -168,7 +174,7 @@ export async function saveBonus(formData: FormData) {
     if (error) throw new Error(error.message);
     bonusId = data.id;
   }
-  revalidatePath("/", "layout");
+  refreshSite();
   redirect(`/admin/bonuses/${bonusId}?saved=1`);
 }
 
@@ -179,7 +185,7 @@ export async function deleteBonus(formData: FormData) {
   const { data } = await admin.from("bonuses").select("file_path").eq("id", id).maybeSingle();
   if (data?.file_path) await admin.storage.from("resources").remove([data.file_path]);
   await admin.from("bonuses").delete().eq("id", id);
-  revalidatePath("/", "layout");
+  refreshSite();
   redirect("/admin/bonuses");
 }
 

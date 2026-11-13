@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock, FolderOpen, Lock, PlayCircle, RotateCcw } from "lucide-react";
 import type { ModuleWithState } from "@/lib/course";
@@ -37,8 +38,7 @@ export function ModuleTile({ m, slug, prev }: { m: ModuleWithState; slug: string
       {/* image */}
       <div className="relative aspect-[16/9] overflow-hidden bg-ink">
         {m.cover_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={m.cover_url} alt="" className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${locked ? "blur-[3px] grayscale" : ""}`} />
+            <Image src={m.cover_url} alt="" fill sizes="(min-width:768px) 540px, 100vw" className={`object-cover transition duration-500 group-hover:scale-105 ${locked ? "blur-[3px] grayscale" : ""}`} />
         ) : (
           <div className="grid-bg h-full w-full">
             <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-brand/30 blur-3xl" />

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Download, Gift, Lock } from "lucide-react";
 import type { Bonus } from "@/lib/types";
 import { pad2 } from "@/lib/format";
@@ -13,8 +14,7 @@ export function BonusCard({ b, index, unlocked }: { b: Bonus; index: number; unl
     <article className={`group relative flex h-full flex-col overflow-hidden rounded-[22px] border bg-white transition ${unlocked ? "border-line hover:-translate-y-1 hover:border-ink hover:shadow-2xl hover:shadow-black/10" : "border-line"}`}>
       <div className="relative aspect-[4/3] overflow-hidden bg-ink">
         {b.thumbnail_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={b.thumbnail_url} alt="" className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${unlocked ? "" : "blur-[2px] grayscale-[40%]"}`} />
+            <Image src={b.thumbnail_url} alt="" fill sizes="(min-width:1280px) 20vw, (min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw" className={`object-cover transition duration-500 group-hover:scale-105 ${unlocked ? "" : "blur-[2px] grayscale-[40%]"}`} />
         ) : (
           <div className="grid-bg grid h-full w-full place-items-center">
             <Gift className="h-12 w-12 text-brand" />

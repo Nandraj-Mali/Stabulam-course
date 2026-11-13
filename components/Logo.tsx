@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { SiteSettings } from "@/lib/types";
 
@@ -5,8 +6,7 @@ export function Logo({ s, href = "/" }: { s: SiteSettings; href?: string }) {
   return (
     <Link href={href} className="flex items-center gap-2.5">
       {s.logo_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={s.logo_url} alt={s.brand_name} className="h-10 w-auto max-w-[200px] object-contain sm:h-11" />
+        <Image src={s.logo_url} alt={s.brand_name} width={200} height={44} priority className="h-10 w-auto max-w-[200px] object-contain sm:h-11" />
       ) : (
         <>
           <span className="grid h-10 w-10 place-items-center rounded-full bg-ink">

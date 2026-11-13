@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Lock, CheckCircle2, PlayCircle, Clock } from "lucide-react";
 import { fmtDuration, pad2 } from "@/lib/format";
@@ -21,8 +22,7 @@ export function ModuleCard({ position, title, subtitle, cover, duration, state =
       }`}
     >
       {cover ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <Image src={cover} alt="" fill sizes="(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw" className="object-cover" />
       ) : (
         <div className="grid-bg absolute inset-0">
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-brand/35 blur-3xl" />

@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    // uploaded covers/thumbnails are resized + served as WebP/AVIF instead of multi-MB PNGs
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    remotePatterns: [{ protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" }],
+  },
   experimental: {
     // allow module cover / logo uploads through server actions
     serverActions: { bodySizeLimit: "5mb" },

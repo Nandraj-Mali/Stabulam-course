@@ -1,5 +1,6 @@
 import { cache } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { unstable_cache } from "next/cache";
+import { createPublicClient } from "@/lib/supabase/public";
 import type { SiteSettings } from "@/lib/types";
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -26,10 +27,11 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   certificate: { signatory_name: "Course Director", signatory_title: "Stabulam" },
 };
 
-export const getSettings = cache(async (): Promise<SiteSettings> => {
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase.from("site_settings").select("*").eq("id", 1).maybeSingle();
+/** Site settings change rarely: cached across requests, refreshed instantly when admin saves (tag "site"). */
+const loadSettings = unstable_cache(
+  async (): Promise<SiteSettings> => {
+    const { data, error } = await createPublicClient().from("site_settings").select("*").eq("id", 1).maybeSingle();
+    if (error) throw error;
     if (!data) return DEFAULT_SETTINGS;
     return {
       ...DEFAULT_SETTINGS,
@@ -37,6 +39,14 @@ export const getSettings = cache(async (): Promise<SiteSettings> => {
       hero: { ...DEFAULT_SETTINGS.hero, ...(data.hero ?? {}) },
       certificate: { ...DEFAULT_SETTINGS.certificate, ...(data.certificate ?? {}) },
     };
+  },
+  ["site-settings-v1"],
+  { tags: ["site"], revalidate: 600 }
+);
+
+export const getSettings = cache(async (): Promise<SiteSettings> => {
+  try {
+    return await loadSettings();
   } catch {
     return DEFAULT_SETTINGS;
   }

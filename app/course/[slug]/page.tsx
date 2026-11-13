@@ -24,19 +24,20 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   // learners see published bonuses; admins also see drafts so they can preview the layout
   let bonusQuery = (await createClient()).from("bonuses").select(BONUS_COLUMNS).eq("course_id", data.course.id).order("position");
   if (!isAdmin) bonusQuery = bonusQuery.eq("is_published", true);
-  const { data: bonusRows } = await bonusQuery;
+
+  // bonuses + signed resource links in parallel (resources only from unlocked modules)
+  const [{ data: bonusRows }, libraryAll] = await Promise.all([
+    bonusQuery,
+    Promise.all(
+      data.modules
+        .filter((m) => m.state !== "locked" || isAdmin)
+        .map(async (m) => ({ m, files: await signResources(m.resources) }))
+    ),
+  ]);
   const bonuses = (bonusRows ?? []) as Bonus[];
   const bonusCount = bonuses.filter((b) => b.is_published).length;
+  const library = libraryAll.filter((x) => x.files.length);
   const totalSec = data.modules.reduce((a, m) => a + (m.duration_seconds || 0), 0);
-
-  // Resources from unlocked modules only (signed, short-lived links)
-  const library = (
-    await Promise.all(
-      data.modules
-        .filter((m) => m.state !== "locked" || profile.role === "admin")
-        .map(async (m) => ({ m, files: await signResources(m.resources) }))
-    )
-  ).filter((x) => x.files.length);
   const lockedWithFiles = data.modules.filter((m) => m.state === "locked" && profile.role !== "admin" && (m.resources?.length ?? 0) > 0).length;
 
   return (

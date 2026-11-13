@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Award, CheckCircle2, Clock, ImageIcon, Layers, PlayCircle } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
@@ -5,32 +6,14 @@ import { Footer } from "@/components/Footer";
 import { Countdown } from "@/components/Countdown";
 import { ModuleCard } from "@/components/ModuleCard";
 import { getSettings } from "@/lib/settings";
-import { createClient } from "@/lib/supabase/server";
-import { BONUS_COLUMNS, MODULE_COLUMNS, type Bonus, type Module } from "@/lib/types";
+import { getPublicCatalog } from "@/lib/catalog";
 import { BonusCard } from "@/components/BonusCard";
 import { fmtDuration } from "@/lib/format";
 
-export const revalidate = 60;
 
 export default async function Home() {
-  const s = await getSettings();
+  const [s, { course, modules: mods, bonuses }] = await Promise.all([getSettings(), getPublicCatalog()]);
   const h = s.hero;
-  const supabase = await createClient();
-  const { data: course } = await supabase
-    .from("courses")
-    .select("id, slug, title, description, cover_url")
-    .eq("is_published", true)
-    .order("created_at")
-    .limit(1)
-    .maybeSingle();
-  const { data: modules } = course
-    ? await supabase.from("modules").select(MODULE_COLUMNS).eq("course_id", course.id).eq("is_published", true).order("position")
-    : { data: [] as Module[] };
-  const mods = (modules ?? []) as Module[];
-  const { data: bonusRows } = course
-    ? await supabase.from("bonuses").select(BONUS_COLUMNS).eq("course_id", course.id).eq("is_published", true).order("position")
-    : { data: [] as Bonus[] };
-  const bonuses = (bonusRows ?? []) as Bonus[];
   const totalSec = mods.reduce((a, m) => a + (m.duration_seconds || 0), 0);
 
   const slotsTotal = Math.max(1, Math.min(24, Number(h.slots_total ?? 11)));
@@ -69,8 +52,7 @@ export default async function Home() {
             {/* Hero image (uploaded from Admin → Site settings) */}
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[22px] bg-white/5 ring-1 ring-white/10">
               {h.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={h.image_url} alt={h.title ?? ""} className="absolute inset-0 h-full w-full object-cover" />
+                        <Image src={h.image_url} alt={h.title ?? ""} fill priority sizes="(min-width:1024px) 480px, 100vw" className="object-cover" />
               ) : (
                 <div className="dots-bg absolute inset-0 grid place-items-center text-center text-muted">
                   <div>
@@ -173,8 +155,7 @@ export default async function Home() {
             <div className="mt-4 grid items-center gap-8 overflow-hidden rounded-[24px] border border-line p-4 sm:p-6 lg:grid-cols-[1.15fr_1fr]">
               <div className="relative aspect-video w-full overflow-hidden rounded-[18px] bg-ink">
                 {course.cover_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={course.cover_url} alt={course.title} className="absolute inset-0 h-full w-full object-cover" />
+                            <Image src={course.cover_url} alt={course.title} fill sizes="(min-width:1024px) 620px, 100vw" className="object-cover" />
                 ) : (
                   <div className="grid-bg absolute inset-0 grid place-items-center text-center text-white/70">
                     <div>
