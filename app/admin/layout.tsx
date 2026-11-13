@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Award, LayoutDashboard, Layers, Settings, Users, ExternalLink } from "lucide-react";
+import { Award, Gift, LayoutDashboard, Layers, Settings, Users, ExternalLink } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import { Logo } from "@/components/Logo";
@@ -10,6 +10,7 @@ const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/users", label: "Users & progress", icon: Users },
   { href: "/admin/modules", label: "Course & modules", icon: Layers },
+  { href: "/admin/bonuses", label: "Bonuses", icon: Gift },
   { href: "/admin/certificates", label: "Certificates", icon: Award },
   { href: "/admin/settings", label: "Site settings", icon: Settings },
 ];

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { certHref } from "@/lib/format";
-import { Award, Download, Share2, ShieldCheck } from "lucide-react";
+import { Award, Download, Gift, Share2, ShieldCheck } from "lucide-react";
+import { BonusCard } from "@/components/BonusCard";
+import { BONUS_COLUMNS, type Bonus } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { requireOnboarded } from "@/lib/auth";
@@ -8,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCourseWithProgress } from "@/lib/course";
 import { fmtDate } from "@/lib/format";
 
-export const metadata = { title: "My certificate" };
+export const metadata = { title: "My certificate & bonuses" };
 
 export default async function CertificatePage() {
   const { profile } = await requireOnboarded();
@@ -29,7 +31,13 @@ export default async function CertificatePage() {
           issued = row?.issued_at ?? null;
         }
       }
-      return { course: c, prog, certId, issued };
+      const { data: bonuses } = await supabase
+        .from("bonuses")
+        .select(BONUS_COLUMNS)
+        .eq("course_id", e.course_id)
+        .eq("is_published", true)
+        .order("position");
+      return { course: c, prog, certId, issued, bonuses: (bonuses ?? []) as Bonus[] };
     })
   );
 
@@ -39,8 +47,8 @@ export default async function CertificatePage() {
     <>
       <Navbar />
       <main className="mx-auto max-w-[1000px] px-4 pb-24 sm:px-6">
-        <h1 className="mt-4 text-3xl font-bold sm:text-4xl">My certificate</h1>
-        {items.map(({ course, prog, certId, issued }) => (
+        <h1 className="mt-4 text-3xl font-bold sm:text-4xl">My certificate &amp; bonuses</h1>
+        {items.map(({ course, prog, certId, issued, bonuses }) => (
           <section key={course.slug} className="mt-8">
             {certId ? (
               <div className="grid-bg relative overflow-hidden rounded-[28px] p-8 text-white sm:p-12">
@@ -79,6 +87,21 @@ export default async function CertificatePage() {
                   <div className="h-full bg-brand" style={{ width: `${prog?.total ? (prog.completed / prog.total) * 100 : 0}%` }} />
                 </div>
                 <Link href={`/course/${course.slug}`} className="btn-dark mt-6">Continue learning</Link>
+              </div>
+            )}
+
+            {bonuses.length > 0 && (
+              <div className="mt-10">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand text-white"><Gift className="h-5 w-5" /></span>
+                  <div>
+                    <p className="eyebrow">{certId ? "Unlocked" : "Unlocks with your certificate"}</p>
+                    <h2 className="text-2xl font-bold sm:text-3xl">{bonuses.length} exclusive bonus{bonuses.length > 1 ? "es" : ""}</h2>
+                  </div>
+                </div>
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {bonuses.map((b, i) => <BonusCard key={b.id} b={b} index={i + 1} unlocked={!!certId} />)}
+                </div>
               </div>
             )}
           </section>

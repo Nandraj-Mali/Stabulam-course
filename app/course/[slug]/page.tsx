@@ -5,6 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { ResourceCard } from "@/components/ResourceCard";
 import { requireOnboarded } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { getCourseWithProgress } from "@/lib/course";
 import { ModuleTile, ProgressRing } from "@/components/CourseTiles";
 import { signResources } from "@/lib/resources";
@@ -17,6 +18,11 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   if (!data) notFound();
 
   const pct = data.total ? Math.round((data.completed / data.total) * 100) : 0;
+  const { count: bonusCount } = await (await createClient())
+    .from("bonuses")
+    .select("id", { count: "exact", head: true })
+    .eq("course_id", data.course.id)
+    .eq("is_published", true);
   const totalSec = data.modules.reduce((a, m) => a + (m.duration_seconds || 0), 0);
 
   // Resources from unlocked modules only (signed, short-lived links)
@@ -92,7 +98,10 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 <Award className="h-7 w-7" />
               </div>
               <div>
-                <p className="text-lg font-bold">{data.allDone ? "🎉 Your certificate is ready!" : "Final milestone: your free certificate"}</p>
+                <p className="text-lg font-bold">
+                  {data.allDone ? "🎉 Your certificate is ready!" : "Final milestone: your free certificate"}
+                  {(bonusCount ?? 0) > 0 && <span className="ml-2 rounded-full bg-brand px-2.5 py-0.5 align-middle text-xs font-bold text-white">+ {bonusCount} BONUSES</span>}
+                </p>
                 <p className="text-sm text-muted">
                   {data.allDone ? "Download it and share it on LinkedIn." : `Complete all ${data.total} modules to unlock it. ${data.total - data.completed} to go.`}
                 </p>

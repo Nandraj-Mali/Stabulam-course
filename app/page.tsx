@@ -6,7 +6,8 @@ import { Countdown } from "@/components/Countdown";
 import { ModuleCard } from "@/components/ModuleCard";
 import { getSettings } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
-import { MODULE_COLUMNS, type Module } from "@/lib/types";
+import { BONUS_COLUMNS, MODULE_COLUMNS, type Bonus, type Module } from "@/lib/types";
+import { BonusCard } from "@/components/BonusCard";
 import { fmtDuration } from "@/lib/format";
 
 export const revalidate = 60;
@@ -26,6 +27,10 @@ export default async function Home() {
     ? await supabase.from("modules").select(MODULE_COLUMNS).eq("course_id", course.id).eq("is_published", true).order("position")
     : { data: [] as Module[] };
   const mods = (modules ?? []) as Module[];
+  const { data: bonusRows } = course
+    ? await supabase.from("bonuses").select(BONUS_COLUMNS).eq("course_id", course.id).eq("is_published", true).order("position")
+    : { data: [] as Bonus[] };
+  const bonuses = (bonusRows ?? []) as Bonus[];
   const totalSec = mods.reduce((a, m) => a + (m.duration_seconds || 0), 0);
 
   const slotsTotal = Math.max(1, Math.min(24, Number(h.slots_total ?? 11)));
@@ -208,6 +213,22 @@ export default async function Home() {
             ))}
           </div>
         </section>
+
+        {/* BONUSES */}
+        {bonuses.length > 0 && (
+          <section id="bonuses" className="mt-20 scroll-mt-10">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="eyebrow">Free bonuses</p>
+                <h2 className="mt-2 text-3xl font-bold sm:text-4xl">Complete the course, unlock {bonuses.length} bonus{bonuses.length > 1 ? "es" : ""}</h2>
+              </div>
+              <p className="max-w-sm text-muted">Delivered with your certificate, ready to download as PDFs.</p>
+            </div>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {bonuses.map((b, i) => <BonusCard key={b.id} b={b} index={i + 1} unlocked={false} />)}
+            </div>
+          </section>
+        )}
 
         {/* CERTIFICATE */}
         <section id="certificate" className="mt-20 scroll-mt-10">

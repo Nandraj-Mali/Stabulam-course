@@ -95,3 +95,17 @@ export type Progress = {
 
 export const MODULE_COLUMNS =
   "id, course_id, position, title, subtitle, cover_url, duration_seconds, summary, takeaways, resources, pass_percent, popup_enabled, popup_interval_minutes, popup_type, popup_content, is_published";
+
+export type Bonus = {
+  id: string;
+  course_id: string;
+  position: number;
+  title: string;
+  summary: string | null;
+  thumbnail_url: string | null;
+  file_name: string | null;
+  file_size: number | null;
+  is_published: boolean;
+};
+
+export const BONUS_COLUMNS = "id, course_id, position, title, summary, thumbnail_url, file_name, file_size, is_published";
