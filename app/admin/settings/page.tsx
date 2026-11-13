@@ -70,6 +70,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <div><label className="label">Seats filled</label><input name="slots_filled" type="number" min={0} max={20} defaultValue={h.slots_filled} className="input" /></div>
           <div><label className="label">Offer countdown ends at</label><input name="countdown_end" type="datetime-local" defaultValue={toLocalInput(h.countdown_end)} className="input" /></div>
           <div><label className="label">Certificate line</label><input name="certificate_note" defaultValue={h.certificate_note} className="input" /></div>
+          <div className="sm:col-span-2"><label className="label">Login / sign-up page heading (right side)</label><input name="auth_title" defaultValue={h.auth_title ?? ""} className="input" placeholder="Leave empty to use the big title" /></div>
         </fieldset>
 
         <fieldset className="card grid gap-4 p-6 sm:grid-cols-2">

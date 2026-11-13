@@ -11,6 +11,7 @@ export type Hero = {
   countdown_end?: string;
   certificate_note?: string;
   image_url?: string;
+  auth_title?: string;
 };
 
 export type SiteSettings = {

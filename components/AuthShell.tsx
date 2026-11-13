@@ -18,7 +18,7 @@ export async function AuthShell({ title, subtitle, children }: { title: string; 
         <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand/30 blur-3xl" />
         <div className="relative">
           <p className="eyebrow">{s.hero.eyebrow}</p>
-          <h2 className="mt-3 text-4xl font-bold leading-tight">{s.hero.title}</h2>
+          <h2 className="mt-3 text-4xl font-bold leading-tight">{s.hero.auth_title || s.hero.title}</h2>
           <ul className="mt-6 space-y-2.5 text-white/85">
             {(s.hero.badges ?? []).map((b) => (
               <li key={b} className="flex items-center gap-3">

@@ -46,6 +46,7 @@ export async function saveSettings(formData: FormData) {
       slots_filled: Number(str(formData, "slots_filled")) || 0,
       countdown_end: countdown ? new Date(countdown).toISOString() : "",
       certificate_note: str(formData, "certificate_note"),
+      auth_title: str(formData, "auth_title"),
       image_url: formData.get("remove_hero_image") ? "" : heroImg ?? cur?.hero?.image_url ?? "",
     },
     whatsapp_number: str(formData, "whatsapp_number").replace(/\D/g, ""),
