@@ -51,6 +51,7 @@ type PlayerJs = {
 };
 
 const HEARTBEAT_EVERY = 15; // seconds
+const MAX_SPEED = 1.5;
 
 export function ModuleExperience(p: Props) {
   const router = useRouter();
@@ -69,6 +70,8 @@ export function ModuleExperience(p: Props) {
   const playing = useRef(false);
   const lastT = useRef<number | null>(null); // last playhead time seen
   const lastAdvance = useRef(0); // wall-clock ms when the playhead last moved forward
+  const lastWall = useRef(0); // wall-clock ms of the previous time update
+  const speedWarned = useRef(0);
   const current = useRef(0);
   const duration = useRef(p.duration);
   const maxPos = useRef(p.maxPosition);
@@ -101,28 +104,50 @@ export function ModuleExperience(p: Props) {
   // Called by both player types on every time update.
   // Watch time = how far the playhead genuinely advanced (works at any playback speed,
   // and doesn't depend on play/pause events arriving).
+  const warnSpeed = useCallback(() => {
+    if (Date.now() - speedWarned.current < 4000) return;
+    speedWarned.current = Date.now();
+    setNotice(`Maximum playback speed is ${MAX_SPEED}×. Please lower the speed to keep your progress.`);
+    setTimeout(() => setNotice(null), 3500);
+  }, []);
+
   const onTime = useCallback((t: number, d?: number) => {
     if (d && d > 0) duration.current = d;
     if (!freeSeek.current && t > maxPos.current + 3) {
-      // Skipping ahead is not allowed
+      // Skipping ahead (or playing faster than allowed) is not counted
       player.current?.seek(maxPos.current);
       lastT.current = maxPos.current;
-      setNotice("Skipping ahead isn't allowed on the first watch.");
-      setTimeout(() => setNotice(null), 2500);
+      lastWall.current = Date.now();
+      if (Date.now() - speedWarned.current > 4000) {
+        setNotice("Skipping ahead isn't allowed on the first watch.");
+        setTimeout(() => setNotice(null), 2500);
+      }
       return;
     }
+    const now = Date.now();
     const prev = lastT.current;
+    let credit = 0;
     if (prev !== null) {
       const step = t - prev;
       if (step > 0 && step <= 3) {
-        pending.current += step;
-        lastAdvance.current = Date.now();
+        const wallSec = lastWall.current ? (now - lastWall.current) / 1000 : step;
+        const cap = wallSec * MAX_SPEED + 0.35;
+        if (step > cap && wallSec > 0.15) warnSpeed();
+        credit = Math.min(step, cap);
+        pending.current += credit;
+        lastAdvance.current = now;
       }
     }
     lastT.current = t;
+    lastWall.current = now;
     current.current = t;
-    if (t > maxPos.current) maxPos.current = t;
-  }, []);
+    if (freeSeek.current) {
+      if (t > maxPos.current) maxPos.current = t;
+    } else if (t > maxPos.current) {
+      // the unlocked range grows only as fast as 1.5x real time
+      maxPos.current = Math.min(t, maxPos.current + Math.max(credit, 0) + (prev === null ? 0.5 : 0));
+    }
+  }, [warnSpeed]);
 
   const onEnded = useCallback(() => {
     playing.current = false;
@@ -209,6 +234,12 @@ export function ModuleExperience(p: Props) {
       void sendHeartbeat();
     };
     const time = () => onTime(v.currentTime, v.duration);
+    const rate = () => {
+      if (v.playbackRate > MAX_SPEED) {
+        v.playbackRate = MAX_SPEED;
+        warnSpeed();
+      }
+    };
     const ended = () => {
       onEnded();
       void sendHeartbeat();
@@ -217,15 +248,17 @@ export function ModuleExperience(p: Props) {
     v.addEventListener("play", play);
     v.addEventListener("pause", stop);
     v.addEventListener("ended", ended);
+    v.addEventListener("ratechange", rate);
     v.addEventListener("timeupdate", time);
     return () => {
       v.removeEventListener("loadedmetadata", meta);
       v.removeEventListener("play", play);
       v.removeEventListener("pause", stop);
       v.removeEventListener("ended", ended);
+      v.removeEventListener("ratechange", rate);
       v.removeEventListener("timeupdate", time);
     };
-  }, [p.directUrl, onTime, onReady, onEnded, sendHeartbeat]);
+  }, [p.directUrl, onTime, onReady, onEnded, sendHeartbeat, warnSpeed]);
 
   return (
     <>
@@ -248,7 +281,7 @@ export function ModuleExperience(p: Props) {
               ref={videoRef}
               src={p.directUrl}
               controls
-              controlsList="nodownload noplaybackrate"
+              controlsList="nodownload"
               disablePictureInPicture
               playsInline
               className="absolute inset-0 h-full w-full"

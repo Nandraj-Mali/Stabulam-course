@@ -255,23 +255,22 @@ begin
   end if;
 
   insert into module_progress (user_id, module_id, updated_at)
-  values (uid, p_module, now() - make_interval(secs => least(greatest(coalesce(p_delta, 0), 0), 120)))
+  values (uid, p_module, now() - make_interval(secs => least(greatest(coalesce(p_delta, 0), 0) / 1.5, 20)))
     on conflict do nothing;
   select * into mp from module_progress where user_id = uid and module_id = p_module for update;
 
-  -- anti-cheat: watch time can't exceed real time elapsed, allowing up to 2x playback speed
-  allowed := least(greatest(coalesce(p_delta, 0), 0),
-                   greatest((extract(epoch from (now() - mp.updated_at))::int + 5) * 2, 0),
-                   120);
-  new_watched := mp.watched_seconds + allowed;
-  -- max position can only advance about as far as real watching allows
-  new_max := greatest(mp.max_position, least(greatest(p_position, 0), mp.max_position + allowed + 10));
+  -- real time since the last heartbeat, at most 1.5x playback speed
+  allowed := greatest(ceil((extract(epoch from (now() - mp.updated_at)) + 2) * 1.5)::int, 0);
+  -- watch time is only tracked for admin stats (not required for completion)
+  new_watched := mp.watched_seconds + least(greatest(coalesce(p_delta, 0), 0), allowed, 120);
+  -- furthest point can only advance as fast as 1.5x real time
+  new_max := greatest(mp.max_position, least(greatest(p_position, 0), mp.max_position + allowed));
   if dur > 0 then
     new_watched := least(new_watched, dur * 3);
     new_max := least(new_max, dur);
   end if;
 
-  done := mp.video_completed or (dur > 0 and new_max >= dur * 0.9 and new_watched >= dur * 0.8);
+  done := mp.video_completed or (dur > 0 and new_max >= dur * 0.9);
 
   update module_progress set
     watched_seconds = new_watched,
