@@ -67,6 +67,8 @@ export function ModuleExperience(p: Props) {
   const player = useRef<PlayerAdapter | null>(null);
 
   const playing = useRef(false);
+  const lastT = useRef<number | null>(null); // last playhead time seen
+  const lastAdvance = useRef(0); // wall-clock ms when the playhead last moved forward
   const current = useRef(0);
   const duration = useRef(p.duration);
   const maxPos = useRef(p.maxPosition);
@@ -96,18 +98,42 @@ export function ModuleExperience(p: Props) {
     }
   }, [supabase, p.moduleId, router]);
 
-  // Called by both player types on every time update
+  // Called by both player types on every time update.
+  // Watch time = how far the playhead genuinely advanced (works at any playback speed,
+  // and doesn't depend on play/pause events arriving).
   const onTime = useCallback((t: number, d?: number) => {
     if (d && d > 0) duration.current = d;
     if (!freeSeek.current && t > maxPos.current + 3) {
       // Skipping ahead is not allowed
       player.current?.seek(maxPos.current);
+      lastT.current = maxPos.current;
       setNotice("Skipping ahead isn't allowed on the first watch.");
       setTimeout(() => setNotice(null), 2500);
       return;
     }
+    const prev = lastT.current;
+    if (prev !== null) {
+      const step = t - prev;
+      if (step > 0 && step <= 3) {
+        pending.current += step;
+        lastAdvance.current = Date.now();
+      }
+    }
+    lastT.current = t;
     current.current = t;
     if (t > maxPos.current) maxPos.current = t;
+  }, []);
+
+  const onEnded = useCallback(() => {
+    playing.current = false;
+    const d = duration.current;
+    if (d > 0) {
+      // credit the last fraction of a second before the end event
+      if (lastT.current !== null && d > lastT.current && d - lastT.current <= 3) pending.current += d - lastT.current;
+      current.current = d;
+      lastT.current = d;
+      if (maxPos.current < d) maxPos.current = d;
+    }
   }, []);
 
   const onReady = useCallback(() => {
@@ -117,18 +143,21 @@ export function ModuleExperience(p: Props) {
     if (p.startAt > 5 && (!d || p.startAt < d - 5)) player.current?.seek(p.startAt);
   }, [p.startAt]);
 
-  // 1-second ticker: counts real watch time, sends heartbeats, triggers popups
+  // 1-second ticker: sends heartbeats and triggers popups while the video is actually moving
   useEffect(() => {
     const t = setInterval(() => {
-      if (!playing.current || document.visibilityState !== "visible") return;
-      pending.current += 1;
-      sinceBeat.current += 1;
-      sincePopup.current += 1;
-      if (sinceBeat.current >= HEARTBEAT_EVERY) void sendHeartbeat();
-      if (p.popup.enabled && p.popup.intervalMinutes > 0 && sincePopup.current >= p.popup.intervalMinutes * 60) {
-        sincePopup.current = 0;
-        player.current?.pause();
-        setShowPopup(true);
+      const active = Date.now() - lastAdvance.current < 2500;
+      if (active) {
+        sincePopup.current += 1;
+        if (p.popup.enabled && p.popup.intervalMinutes > 0 && sincePopup.current >= p.popup.intervalMinutes * 60) {
+          sincePopup.current = 0;
+          player.current?.pause();
+          setShowPopup(true);
+        }
+      }
+      if (pending.current > 0) {
+        sinceBeat.current += 1;
+        if (sinceBeat.current >= HEARTBEAT_EVERY) void sendHeartbeat();
       }
     }, 1000);
     const flush = () => {
@@ -158,12 +187,12 @@ export function ModuleExperience(p: Props) {
         void sendHeartbeat();
       });
       pj.on("ended", () => {
-        playing.current = false;
+        onEnded();
         void sendHeartbeat();
       });
       pj.on("timeupdate", (d) => d && onTime(d.seconds, d.duration));
     });
-  }, [p.embedUrl, scriptReady, onTime, onReady, sendHeartbeat]);
+  }, [p.embedUrl, scriptReady, onTime, onReady, onEnded, sendHeartbeat]);
 
   // Native video wiring
   useEffect(() => {
@@ -180,19 +209,23 @@ export function ModuleExperience(p: Props) {
       void sendHeartbeat();
     };
     const time = () => onTime(v.currentTime, v.duration);
+    const ended = () => {
+      onEnded();
+      void sendHeartbeat();
+    };
     v.addEventListener("loadedmetadata", meta);
     v.addEventListener("play", play);
     v.addEventListener("pause", stop);
-    v.addEventListener("ended", stop);
+    v.addEventListener("ended", ended);
     v.addEventListener("timeupdate", time);
     return () => {
       v.removeEventListener("loadedmetadata", meta);
       v.removeEventListener("play", play);
       v.removeEventListener("pause", stop);
-      v.removeEventListener("ended", stop);
+      v.removeEventListener("ended", ended);
       v.removeEventListener("timeupdate", time);
     };
-  }, [p.directUrl, onTime, onReady, sendHeartbeat]);
+  }, [p.directUrl, onTime, onReady, onEnded, sendHeartbeat]);
 
   return (
     <>
