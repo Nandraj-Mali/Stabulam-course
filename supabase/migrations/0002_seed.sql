@@ -1,4 +1,4 @@
--- Seed: site settings + the first course with 10 modules (edit everything later from /admin)
+-- Seed: site settings + the first course with 4 modules (edit everything later from /admin)
 
 insert into public.site_settings (id, brand_name, brand_tagline, hero, whatsapp_number, whatsapp_message, footer_text, certificate)
 values (
@@ -6,10 +6,10 @@ values (
   'Stabulam',
   'School',
   jsonb_build_object(
-    'eyebrow', 'SELF-PACED ◆ 10 MODULES ◆ 2 HOURS',
+    'eyebrow', 'SELF-PACED ◆ 4 MODULES ◆ FREE CERTIFICATE',
     'title', 'Digital Marketing for Schools',
     'subtitle', 'Learn how to fill your admissions with Google, Instagram, WhatsApp and smart content. Built for principals, owners and school marketing teams. Free certificate on completion.',
-    'badges', jsonb_build_array('10 VIDEO MODULES', '~2 HOURS OF TRAINING', 'FREE CERTIFICATE'),
+    'badges', jsonb_build_array('4 VIDEO MODULES', 'SELF-PACED', 'FREE CERTIFICATE'),
     'cta_text', 'Claim your spot for',
     'value_price', '₹4,999',
     'offer_title', 'Final Call: Limited Free Seats!',
@@ -30,7 +30,7 @@ with c as (
   values (
     'digital-marketing-for-schools',
     'Digital Marketing for Schools',
-    'A practical, 10-module course that shows schools how to attract more parents, build trust online and grow admissions.'
+    'A practical, 4-module course that shows schools how to attract more parents, build trust online and grow admissions.'
   )
   on conflict (slug) do update set title = excluded.title
   returning id
@@ -41,13 +41,7 @@ from c, (values
   (1,  'Digital Marketing Foundations', 'Why every school needs it in 2026', 'How parents search for and choose schools today, and the core channels that matter.', false),
   (2,  'Your School Brand Identity', 'Positioning, story & visuals', 'Define what makes your school different and present it consistently everywhere.', false),
   (3,  'Websites That Convert Parents', 'Landing pages & enquiry forms', 'Turn your website into an admissions machine with clear pages and strong calls to action.', true),
-  (4,  'Google Business & Local SEO', 'Show up when parents search nearby', 'Set up and optimise your Google Business Profile, reviews and local search ranking.', false),
-  (5,  'Social Media Strategy', 'Instagram, Facebook & YouTube', 'Plan a simple, consistent posting system that builds trust with parents.', true),
-  (6,  'Content Parents Love', 'Reels, stories & testimonials', 'Create high-performing content from everyday school life with just a phone.', false),
-  (7,  'Paid Ads for Admissions', 'Meta & Google ads made simple', 'Run small-budget ad campaigns that bring real admission enquiries.', true),
-  (8,  'WhatsApp Marketing', 'Broadcasts, follow-ups & automation', 'Use WhatsApp to nurture leads and stay connected with parents.', false),
-  (9,  'Admission Funnel & CRM', 'From enquiry to enrolment', 'Track every lead, follow up on time and improve your conversion rate.', false),
-  (10, 'Measure & Your 90-Day Plan', 'Metrics that matter + action plan', 'Read the numbers, double down on what works and leave with a 90-day plan.', false)
+  (4,  'Google Business & Local SEO', 'Show up when parents search nearby', 'Set up and optimise your Google Business Profile, reviews and local search ranking.', false)
 ) as v(position, title, subtitle, summary, popup)
 on conflict (course_id, position) do nothing;
 

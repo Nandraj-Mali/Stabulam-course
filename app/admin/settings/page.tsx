@@ -53,7 +53,18 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <div className="sm:col-span-2"><label className="label">White badges (one per line)</label><textarea name="badges" rows={3} defaultValue={(h.badges ?? []).join("\n")} className="input" /></div>
           <div><label className="label">Button text</label><input name="cta_text" defaultValue={h.cta_text} className="input" placeholder="Claim your spot for" /></div>
           <div><label className="label">Crossed-out value (e.g. ₹4,999)</label><input name="value_price" defaultValue={h.value_price} className="input" /></div>
-          <div className="sm:col-span-2"><label className="label">Offer card title</label><input name="offer_title" defaultValue={h.offer_title} className="input" /></div>
+          <div className="sm:col-span-2">
+            <label className="label">Hero image (right side of the black hero, 4:3 recommended)</label>
+            <div className="flex flex-wrap items-center gap-4">
+              {h.image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={h.image_url} alt="" className="h-20 w-28 rounded-lg object-cover" />
+              )}
+              <input type="file" name="hero_image" accept="image/*" className="text-sm" />
+              {h.image_url && <label className="flex items-center gap-2 text-sm text-muted"><input type="checkbox" name="remove_hero_image" /> Remove image</label>}
+            </div>
+          </div>
+          <div className="sm:col-span-2"><label className="label">Seats strip title (below the hero)</label><input name="offer_title" defaultValue={h.offer_title} className="input" /></div>
           <div><label className="label">Total seats shown</label><input name="slots_total" type="number" min={0} max={20} defaultValue={h.slots_total} className="input" /></div>
           <div><label className="label">Seats filled</label><input name="slots_filled" type="number" min={0} max={20} defaultValue={h.slots_filled} className="input" /></div>
           <div><label className="label">Offer countdown ends at</label><input name="countdown_end" type="datetime-local" defaultValue={toLocalInput(h.countdown_end)} className="input" /></div>

@@ -26,6 +26,7 @@ export async function saveSettings(formData: FormData) {
   const admin = createAdminClient();
   const { data: cur } = await admin.from("site_settings").select("*").eq("id", 1).maybeSingle();
   const logo = await uploadImage(formData.get("logo") as File | null, "brand");
+  const heroImg = await uploadImage(formData.get("hero_image") as File | null, "hero");
   const countdown = str(formData, "countdown_end");
 
   const row = {
@@ -45,6 +46,7 @@ export async function saveSettings(formData: FormData) {
       slots_filled: Number(str(formData, "slots_filled")) || 0,
       countdown_end: countdown ? new Date(countdown).toISOString() : "",
       certificate_note: str(formData, "certificate_note"),
+      image_url: formData.get("remove_hero_image") ? "" : heroImg ?? cur?.hero?.image_url ?? "",
     },
     whatsapp_number: str(formData, "whatsapp_number").replace(/\D/g, ""),
     whatsapp_message: str(formData, "whatsapp_message"),
@@ -72,6 +74,9 @@ export async function saveCourse(formData: FormData) {
     description: str(formData, "description"),
     is_published: formData.get("is_published") === "on",
   };
+  const cover = await uploadImage(formData.get("cover") as File | null, "courses");
+  if (cover) Object.assign(row, { cover_url: cover });
+  if (formData.get("remove_cover")) Object.assign(row, { cover_url: null });
   const { error } = id ? await admin.from("courses").update(row).eq("id", id) : await admin.from("courses").insert(row);
   if (error) throw new Error(error.message);
   revalidatePath("/", "layout");

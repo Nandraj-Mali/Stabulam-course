@@ -10,6 +10,7 @@ export type Hero = {
   slots_filled?: number;
   countdown_end?: string;
   certificate_note?: string;
+  image_url?: string;
 };
 
 export type SiteSettings = {

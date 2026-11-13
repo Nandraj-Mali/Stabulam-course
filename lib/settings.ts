@@ -7,11 +7,11 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   brand_tagline: "School",
   logo_url: null,
   hero: {
-    eyebrow: "SELF-PACED ◆ 10 MODULES ◆ 2 HOURS",
+    eyebrow: "SELF-PACED ◆ 4 MODULES ◆ FREE CERTIFICATE",
     title: "Digital Marketing for Schools",
     subtitle:
       "Learn how to fill your admissions with Google, Instagram, WhatsApp and smart content.",
-    badges: ["10 VIDEO MODULES", "~2 HOURS OF TRAINING", "FREE CERTIFICATE"],
+    badges: ["4 VIDEO MODULES", "SELF-PACED", "FREE CERTIFICATE"],
     cta_text: "Claim your spot for",
     value_price: "₹4,999",
     offer_title: "Final Call: Limited Free Seats!",
