@@ -67,6 +67,7 @@ export type Module = {
   pass_percent: number;
   popup_enabled: boolean;
   popup_interval_minutes: number;
+  popup_interval_seconds: number;
   popup_type: "attention" | "message";
   popup_content: { title?: string; body?: string; button_text?: string; button_url?: string };
   is_published: boolean;
@@ -94,7 +95,7 @@ export type Progress = {
 };
 
 export const MODULE_COLUMNS =
-  "id, course_id, position, title, subtitle, cover_url, duration_seconds, summary, takeaways, resources, pass_percent, popup_enabled, popup_interval_minutes, popup_type, popup_content, is_published";
+  "id, course_id, position, title, subtitle, cover_url, duration_seconds, summary, takeaways, resources, pass_percent, popup_enabled, popup_interval_minutes, popup_interval_seconds, popup_type, popup_content, is_published";
 
 export type Bonus = {
   id: string;

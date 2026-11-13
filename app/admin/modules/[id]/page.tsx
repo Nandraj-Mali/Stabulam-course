@@ -97,9 +97,11 @@ export default async function EditModule({
           </label>
           <div>
             <label className="label">Every (minutes of watching)</label>
-            <select name="popup_interval_minutes" defaultValue={String(m?.popup_interval_minutes ?? 15)} className="input">
-              {[3, 5, 10, 15, 20, 25, 30].map((n) => <option key={n} value={n}>{n} minutes</option>)}
+            <select name="popup_interval_seconds" defaultValue={String(m?.popup_interval_seconds ?? 900)} className="input">
+              <option value="20">20 seconds (testing)</option>
+              {[1, 3, 5, 10, 15, 20, 25, 30].map((n) => <option key={n} value={n * 60}>{n} minute{n > 1 ? "s" : ""}</option>)}
             </select>
+            <p className="mt-1 text-xs text-muted">Counts only while the video is playing. Use 20 seconds to test, then switch back.</p>
           </div>
           <div>
             <label className="label">Popup type</label>
@@ -109,9 +111,9 @@ export default async function EditModule({
             </select>
           </div>
           <div><label className="label">Title (optional)</label><input name="popup_title" defaultValue={popup.title ?? ""} className="input" /></div>
-          <div><label className="label">Button text (message type)</label><input name="popup_button_text" defaultValue={popup.button_text ?? ""} className="input" placeholder="Talk to us on WhatsApp" /></div>
+          <div><label className="label">Button text (optional)</label><input name="popup_button_text" defaultValue={popup.button_text ?? ""} className="input" placeholder="Talk to us on WhatsApp" /></div>
           <div className="sm:col-span-2"><label className="label">Message (optional)</label><textarea name="popup_body" rows={2} defaultValue={popup.body ?? ""} className="input" /></div>
-          <div className="sm:col-span-2"><label className="label">Button link (message type)</label><input name="popup_button_url" defaultValue={popup.button_url ?? ""} className="input" placeholder="https://wa.me/91…" /></div>
+          <div className="sm:col-span-2"><label className="label">Button link (optional, e.g. WhatsApp)</label><input name="popup_button_url" defaultValue={popup.button_url ?? ""} className="input" placeholder="https://wa.me/91…" /></div>
         </fieldset>
 
 

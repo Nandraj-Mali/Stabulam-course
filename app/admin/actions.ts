@@ -108,7 +108,8 @@ export async function saveModule(formData: FormData) {
     takeaways: lines(str(formData, "takeaways")),
     resources,
     popup_enabled: formData.get("popup_enabled") === "on",
-    popup_interval_minutes: Math.max(1, Number(str(formData, "popup_interval_minutes")) || 15),
+    popup_interval_seconds: Math.max(10, Number(str(formData, "popup_interval_seconds")) || 900),
+    popup_interval_minutes: Math.max(1, Math.round((Number(str(formData, "popup_interval_seconds")) || 900) / 60)),
     popup_type: str(formData, "popup_type") === "message" ? "message" : "attention",
     popup_content: {
       title: str(formData, "popup_title"),

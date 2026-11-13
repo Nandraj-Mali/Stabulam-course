@@ -65,7 +65,7 @@ export default async function ModulePage({ params }: { params: Promise<{ slug: s
           moduleCompleted={mod.state === "done"}
           popup={{
             enabled: mod.popup_enabled,
-            intervalMinutes: mod.popup_interval_minutes,
+            intervalSeconds: mod.popup_interval_seconds || mod.popup_interval_minutes * 60,
             type: mod.popup_type,
             content: mod.popup_content ?? {},
           }}

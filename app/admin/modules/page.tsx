@@ -12,7 +12,7 @@ export default async function ModulesAdmin() {
   const { data: courses } = await admin.from("courses").select("*").order("created_at");
   const { data: modules } = await admin
     .from("modules")
-    .select("id, course_id, position, title, cover_url, duration_seconds, popup_enabled, popup_interval_minutes, video_provider_id, video_url, resources, is_published")
+    .select("id, course_id, position, title, cover_url, duration_seconds, popup_enabled, popup_interval_minutes, popup_interval_seconds, video_provider_id, video_url, resources, is_published")
     .order("position");
 
   return (
@@ -74,7 +74,7 @@ export default async function ModulesAdmin() {
                       </span>
                       <span>{(m.resources as unknown[] | null)?.length ?? 0} resources</span>
                       {m.popup_enabled && (
-                        <span className="inline-flex items-center gap-1 text-brand"><Bell className="h-3.5 w-3.5" /> Popup every {m.popup_interval_minutes}m</span>
+                        <span className="inline-flex items-center gap-1 text-brand"><Bell className="h-3.5 w-3.5" /> Popup every {m.popup_interval_seconds < 60 ? `${m.popup_interval_seconds}s` : `${Math.round(m.popup_interval_seconds / 60)}m`}</span>
                       )}
                     </div>
                   </div>

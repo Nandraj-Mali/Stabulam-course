@@ -4,12 +4,12 @@ import Link from "next/link";
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, PlayCircle } from "lucide-react";
+import { ArrowUpRight, CheckCircle2, Megaphone, Play, PlayCircle, ShieldCheck, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Popup = {
   enabled: boolean;
-  intervalMinutes: number;
+  intervalSeconds: number;
   type: "attention" | "message";
   content: { title?: string; body?: string; button_text?: string; button_url?: string };
 };
@@ -60,6 +60,7 @@ export function ModuleExperience(p: Props) {
   const [videoDone, setVideoDone] = useState(p.videoCompleted);
   const [moduleDone, setModuleDone] = useState(p.moduleCompleted);
   const [showPopup, setShowPopup] = useState(false);
+  const [popupPct, setPopupPct] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
   const [scriptReady, setScriptReady] = useState(false);
 
@@ -174,9 +175,10 @@ export function ModuleExperience(p: Props) {
       const active = Date.now() - lastAdvance.current < 2500;
       if (active) {
         sincePopup.current += 1;
-        if (p.popup.enabled && p.popup.intervalMinutes > 0 && sincePopup.current >= p.popup.intervalMinutes * 60) {
+        if (p.popup.enabled && p.popup.intervalSeconds > 0 && sincePopup.current >= p.popup.intervalSeconds) {
           sincePopup.current = 0;
           player.current?.pause();
+          setPopupPct(duration.current > 0 ? Math.min(100, Math.round((current.current / duration.current) * 100)) : 0);
           setShowPopup(true);
         }
       }
@@ -194,7 +196,7 @@ export function ModuleExperience(p: Props) {
       document.removeEventListener("visibilitychange", flush);
       void sendHeartbeat();
     };
-  }, [sendHeartbeat, p.popup.enabled, p.popup.intervalMinutes]);
+  }, [sendHeartbeat, p.popup.enabled, p.popup.intervalSeconds]);
 
   // Bunny iframe wiring
   useEffect(() => {
@@ -325,37 +327,101 @@ export function ModuleExperience(p: Props) {
 
 
       {showPopup && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-7 text-center shadow-2xl">
-            {p.popup.type === "attention" ? (
-              <>
-                <h3 className="text-2xl font-bold">{p.popup.content.title || "Still with us? 👀"}</h3>
-                <p className="mt-2 text-muted">{p.popup.content.body || "Click continue to keep watching. Your progress is being saved."}</p>
-              </>
-            ) : (
-              <>
-                <h3 className="text-2xl font-bold">{p.popup.content.title || "Quick note"}</h3>
-                {p.popup.content.body && <p className="mt-2 whitespace-pre-line text-muted">{p.popup.content.body}</p>}
-                {p.popup.content.button_url && (
-                  <a href={p.popup.content.button_url} target="_blank" rel="noopener noreferrer" className="btn-dark mt-5 w-full">
-                    {p.popup.content.button_text || "Learn more"}
-                  </a>
-                )}
-              </>
-            )}
-            <button
-              className="btn-primary mt-3 w-full"
-              onClick={() => {
-                setShowPopup(false);
-                player.current?.play();
-              }}
-            >
-              Continue watching
-            </button>
-          </div>
-        </div>
+        <ContinuePopup
+          popup={p.popup}
+          pct={popupPct}
+          onContinue={() => {
+            setShowPopup(false);
+            player.current?.play();
+          }}
+        />
       )}
     </>
   );
 }
 
+
+export function ContinuePopup({ popup, pct, onContinue }: { popup: Popup; pct: number; onContinue: () => void }) {
+  const attention = popup.type === "attention";
+  const c = popup.content;
+  const title = c.title || (attention ? "Still with us?" : "A quick note for you");
+  const body = c.body || (attention ? "Take a breath, then jump back in. You're doing great." : "");
+  const Icon = attention ? Sparkles : Megaphone;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === "Escape") onContinue();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onContinue]);
+
+  const r = 26;
+  const circ = 2 * Math.PI * r;
+
+  return (
+    <div className="animate-fade-in fixed inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div className="animate-pop-in w-full max-w-[440px] overflow-hidden rounded-[28px] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]">
+        {/* header */}
+        <div className="grid-bg relative overflow-hidden px-6 pb-8 pt-6 text-white">
+          <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-brand/40 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-10 h-48 w-48 rounded-full bg-brand/20 blur-3xl" />
+          <div className="relative flex items-center justify-between">
+            <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold tracking-[0.2em] ring-1 ring-white/20">
+              {attention ? "QUICK CHECK-IN" : "MESSAGE FOR YOU"}
+            </span>
+            {/* progress ring */}
+            <div className="relative h-16 w-16">
+              <svg viewBox="0 0 64 64" className="h-full w-full -rotate-90">
+                <circle cx="32" cy="32" r={r} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="5" />
+                <circle cx="32" cy="32" r={r} fill="none" stroke="#e11d2e" strokeWidth="5" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ - (pct / 100) * circ} />
+              </svg>
+              <span className="absolute inset-0 grid place-items-center text-sm font-bold">{pct}%</span>
+            </div>
+          </div>
+          <div className="relative mt-2 flex justify-center">
+            <span className="relative grid h-20 w-20 place-items-center">
+              <span className="absolute inset-0 animate-ping rounded-full bg-brand/40" />
+              <span className="absolute inset-1 rounded-full bg-brand/30" />
+              <span className="animate-float relative grid h-16 w-16 place-items-center rounded-full bg-brand shadow-lg shadow-brand/40">
+                <Icon className="h-8 w-8" />
+              </span>
+            </span>
+          </div>
+        </div>
+
+        {/* body */}
+        <div className="relative z-10 -mt-5 rounded-t-[24px] bg-white px-7 pb-7 pt-6 text-center">
+          <h3 className="text-2xl font-bold leading-tight">{title}</h3>
+          {body && <p className="mt-2 whitespace-pre-line text-muted">{body}</p>}
+          <p className="mx-auto mt-4 inline-flex items-center gap-1.5 rounded-full bg-cream px-3 py-1 text-xs font-medium text-ink-2">
+            You&apos;re {pct}% through this module
+          </p>
+
+          <div className="mt-6 space-y-2.5">
+            <button
+              autoFocus
+              onClick={onContinue}
+              className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-brand px-5 py-3.5 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 text-base font-semibold text-white shadow-lg shadow-brand/30 transition hover:bg-brand-dark"
+            >
+              <Play className="h-4 w-4 fill-white transition group-hover:scale-110" /> Continue watching
+            </button>
+            {c.button_url && (
+              <a
+                href={c.button_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-ink px-5 py-3 text-sm font-semibold text-ink transition hover:bg-ink hover:text-white"
+              >
+                {c.button_text || "Learn more"} <ArrowUpRight className="h-4 w-4" />
+              </a>
+            )}
+          </div>
+          <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-muted">
+            <ShieldCheck className="h-3.5 w-3.5 text-brand" /> Your progress is saved automatically
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
