@@ -45,7 +45,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
         <table className="w-full min-w-[960px] text-left text-sm">
           <thead className="border-b border-line bg-cream/60 text-xs uppercase tracking-wide text-muted">
             <tr>
-              {["Name", "School", "Phone", "Joined", "Modules", "Watched", "Avg quiz", "Last active", "Cert"].map((h) => (
+              {["Name", "School", "Phone", "Joined", "Modules", "Watched", "Last active", "Cert"].map((h) => (
                 <th key={h} className="px-4 py-3 font-semibold">{h}</th>
               ))}
             </tr>
@@ -73,13 +73,12 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                   </div>
                 </td>
                 <td className="px-4 py-3">{fmtMinutes(u.watched_seconds)}</td>
-                <td className="px-4 py-3">{u.avg_score != null ? `${u.avg_score}%` : "—"}</td>
                 <td className="px-4 py-3">{fmtDate(u.last_active_at)}</td>
                 <td className="px-4 py-3">{u.has_certificate ? "✅" : "—"}</td>
               </tr>
             ))}
             {list.length === 0 && (
-              <tr><td colSpan={9} className="px-4 py-10 text-center text-muted">No users match.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-10 text-center text-muted">No users match.</td></tr>
             )}
           </tbody>
         </table>

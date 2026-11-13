@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Trash2 } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { deleteModule, deleteQuestion, saveModule, saveQuestion } from "../../actions";
+import { deleteModule, saveModule } from "../../actions";
+import { ResourcesEditor } from "./ResourcesEditor";
+import type { Resource } from "@/lib/types";
 import { SubmitButton } from "@/components/SubmitButton";
 
 export const dynamic = "force-dynamic";
@@ -21,13 +23,9 @@ export default async function EditModule({
 
   const { data: m } = isNew ? { data: null } : await admin.from("modules").select("*").eq("id", id).maybeSingle();
   if (!isNew && !m) notFound();
-  const { data: questions } = isNew
-    ? { data: [] }
-    : await admin.from("quiz_questions").select("*").eq("module_id", id).order("position").order("id");
 
   const courseId = m?.course_id ?? sp.course;
   const popup = (m?.popup_content ?? {}) as Record<string, string>;
-  const resources = ((m?.resources ?? []) as { label: string; url: string }[]).map((r) => `${r.label} | ${r.url}`).join("\n");
 
   return (
     <div className="max-w-4xl">
@@ -86,7 +84,11 @@ export default async function EditModule({
           <legend className="px-1 text-sm font-semibold uppercase tracking-wide text-muted">Content</legend>
           <div><label className="label">Summary</label><textarea name="summary" rows={6} defaultValue={m?.summary ?? ""} className="input" /></div>
           <div><label className="label">Key takeaways (one per line)</label><textarea name="takeaways" rows={4} defaultValue={((m?.takeaways ?? []) as string[]).join("\n")} className="input" /></div>
-          <div><label className="label">Resources (one per line: Label | URL)</label><textarea name="resources" rows={3} defaultValue={resources} className="input font-mono text-sm" placeholder="Content calendar template | https://…" /></div>
+        </fieldset>
+
+        <fieldset className="card p-6">
+          <legend className="px-1 text-sm font-semibold uppercase tracking-wide text-muted">Resources (PDFs & files)</legend>
+          <ResourcesEditor initial={(m?.resources ?? []) as Resource[]} folder={m?.id ?? `new-${courseId}`} />
         </fieldset>
 
         <fieldset className="card grid gap-4 p-6 sm:grid-cols-2">
@@ -113,14 +115,6 @@ export default async function EditModule({
           <div className="sm:col-span-2"><label className="label">Button link (message type)</label><input name="popup_button_url" defaultValue={popup.button_url ?? ""} className="input" placeholder="https://wa.me/91…" /></div>
         </fieldset>
 
-        <fieldset className="card grid gap-4 p-6 sm:grid-cols-2">
-          <legend className="px-1 text-sm font-semibold uppercase tracking-wide text-muted">Quiz</legend>
-          <div>
-            <label className="label">Pass mark (%)</label>
-            <input name="pass_percent" type="number" min={0} max={100} defaultValue={m?.pass_percent ?? 60} className="input" />
-          </div>
-          <p className="self-end text-sm text-muted">Add questions below after saving. A module with no questions completes after the video.</p>
-        </fieldset>
 
         <div className="flex justify-end">
           <SubmitButton className="btn-primary px-8 py-3">{isNew ? "Create module" : "Save module"}</SubmitButton>
@@ -129,20 +123,11 @@ export default async function EditModule({
 
       {!isNew && (
         <>
-          <section className="mt-12">
-            <h2 className="text-2xl font-bold">Quiz questions ({questions?.length ?? 0})</h2>
-            <div className="mt-4 space-y-4">
-              {(questions ?? []).map((q, i) => (
-                <QuestionForm key={q.id} moduleId={m!.id} q={q} index={i} />
-              ))}
-              <QuestionForm moduleId={m!.id} index={questions?.length ?? 0} />
-            </div>
-          </section>
 
           <form action={deleteModule} className="mt-12 border-t border-line pt-6">
             <input type="hidden" name="id" value={m!.id} />
             <button className="btn text-brand hover:bg-brand-soft"><Trash2 className="h-4 w-4" /> Delete this module</button>
-            <p className="mt-1 text-xs text-muted">This also deletes its quiz and all learner progress for this module.</p>
+            <p className="mt-1 text-xs text-muted">This also deletes its resources list and all learner progress for this module.</p>
           </form>
         </>
       )}
@@ -150,38 +135,3 @@ export default async function EditModule({
   );
 }
 
-type Question = { id: string; position: number; question: string; options: string[]; correct_index: number; explanation: string | null };
-
-function QuestionForm({ moduleId, q, index }: { moduleId: string; q?: Question; index: number }) {
-  return (
-    <div className={`card p-5 ${q ? "" : "border-dashed"}`}>
-      <form action={saveQuestion} className="grid gap-3">
-        <input type="hidden" name="module_id" value={moduleId} />
-        {q && <input type="hidden" name="id" value={q.id} />}
-        <input type="hidden" name="position" value={q?.position ?? index + 1} />
-        <label className="label !mb-0">{q ? `Question ${index + 1}` : "+ Add a question"}</label>
-        <input name="question" defaultValue={q?.question ?? ""} required className="input" placeholder="Type the question" />
-        <div className="grid gap-2 sm:grid-cols-2">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <label key={i} className="flex items-center gap-2">
-              <input type="radio" name="correct_index" value={i} defaultChecked={(q?.correct_index ?? 0) === i} className="accent-[#e11d2e]" title="Correct answer" />
-              <input name={`opt${i}`} defaultValue={q?.options[i] ?? ""} className="input" placeholder={i < 2 ? `Option ${i + 1}` : `Option ${i + 1} (optional)`} required={i < 2} />
-            </label>
-          ))}
-        </div>
-        <p className="text-xs text-muted">Select the radio button next to the correct answer.</p>
-        <input name="explanation" defaultValue={q?.explanation ?? ""} className="input" placeholder="Explanation shown after submitting (optional)" />
-        <div className="flex justify-end gap-2">
-          <SubmitButton className="btn-dark text-sm">{q ? "Save question" : "Add question"}</SubmitButton>
-        </div>
-      </form>
-      {q && (
-        <form action={deleteQuestion} className="-mt-10 w-fit">
-          <input type="hidden" name="id" value={q.id} />
-          <input type="hidden" name="module_id" value={moduleId} />
-          <button className="btn text-sm text-brand hover:bg-brand-soft"><Trash2 className="h-4 w-4" /> Delete</button>
-        </form>
-      )}
-    </div>
-  );
-}

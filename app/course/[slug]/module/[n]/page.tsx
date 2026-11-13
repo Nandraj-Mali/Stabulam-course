@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Download, Lightbulb } from "lucide-react";
+import { ArrowLeft, FolderOpen, Lightbulb } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { ResourceCard } from "@/components/ResourceCard";
 import { requireOnboarded } from "@/lib/auth";
 import { getCourseWithProgress } from "@/lib/course";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { bunnyEmbedUrl } from "@/lib/bunny";
+import { signResources } from "@/lib/resources";
 import { fmtDuration, pad2 } from "@/lib/format";
 import { ModuleExperience } from "./ModuleExperience";
 
@@ -23,9 +25,9 @@ export default async function ModulePage({ params }: { params: Promise<{ slug: s
 
   // Video source is read with the service role so raw IDs never reach the browser except as a signed, expiring URL.
   const admin = createAdminClient();
-  const [{ data: src }, { count: quizCount }] = await Promise.all([
+  const [{ data: src }, files] = await Promise.all([
     admin.from("modules").select("video_provider_id, video_url").eq("id", mod.id).single(),
-    admin.from("quiz_questions").select("id", { count: "exact", head: true }).eq("module_id", mod.id),
+    signResources(mod.resources),
   ]);
   const embedUrl = src?.video_provider_id ? bunnyEmbedUrl(src.video_provider_id) : null;
   const directUrl = !embedUrl ? src?.video_url ?? null : null;
@@ -53,9 +55,6 @@ export default async function ModulePage({ params }: { params: Promise<{ slug: s
           maxPosition={mod.progress?.max_position ?? 0}
           videoCompleted={!!mod.progress?.video_completed}
           moduleCompleted={mod.state === "done"}
-          hasQuiz={(quizCount ?? 0) > 0}
-          passPercent={mod.pass_percent}
-          bestScore={mod.progress?.best_score ?? null}
           popup={{
             enabled: mod.popup_enabled,
             intervalMinutes: mod.popup_interval_minutes,
@@ -66,34 +65,29 @@ export default async function ModulePage({ params }: { params: Promise<{ slug: s
           nextLabel={nextMod ? `Next: Module ${pad2(nextMod.position)}` : "Get your certificate"}
         />
 
-        <div className="mt-12 grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+        <div className="mt-12 grid gap-8 lg:grid-cols-[1.5fr_1fr]">
           <section>
             <h2 className="text-2xl font-bold">About this module</h2>
             <div className="mt-3 whitespace-pre-line text-[17px] leading-relaxed text-ink-2">{mod.summary || "—"}</div>
-          </section>
-          <aside className="space-y-6">
             {mod.takeaways?.length > 0 && (
-              <div className="dots-bg rounded-2xl p-6">
+              <div className="dots-bg mt-8 rounded-2xl p-6">
                 <h3 className="flex items-center gap-2 font-semibold"><Lightbulb className="h-5 w-5 text-brand" /> Key takeaways</h3>
                 <ul className="mt-3 list-disc space-y-1.5 pl-5 text-ink-2">
                   {mod.takeaways.map((t) => <li key={t}>{t}</li>)}
                 </ul>
               </div>
             )}
-            {mod.resources?.length > 0 && (
-              <div className="card p-6">
-                <h3 className="font-semibold">Resources</h3>
-                <ul className="mt-3 space-y-2">
-                  {mod.resources.map((r) => (
-                    <li key={r.url}>
-                      <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-brand hover:underline">
-                        <Download className="h-4 w-4" /> {r.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          </section>
+          <aside>
+            <div className="rounded-[22px] bg-ink p-5 text-white sm:p-6">
+              <h3 className="flex items-center gap-2 text-lg font-semibold"><FolderOpen className="h-5 w-5 text-brand" /> Resources</h3>
+              <p className="mt-1 text-sm text-white/60">{files.length ? "Download the files for this module." : "No downloads for this module."}</p>
+              {files.length > 0 && (
+                <div className="mt-4 space-y-2.5">
+                  {files.map((r, i) => <ResourceCard key={i} r={r} />)}
+                </div>
+              )}
+            </div>
           </aside>
         </div>
       </main>

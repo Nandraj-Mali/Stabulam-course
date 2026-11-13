@@ -61,13 +61,23 @@ export type Module = {
   duration_seconds: number;
   summary: string | null;
   takeaways: string[];
-  resources: { label: string; url: string }[];
+  resources: Resource[];
   pass_percent: number;
   popup_enabled: boolean;
   popup_interval_minutes: number;
   popup_type: "attention" | "message";
   popup_content: { title?: string; body?: string; button_text?: string; button_url?: string };
   is_published: boolean;
+};
+
+export type Resource = {
+  label: string;
+  /** external link */
+  url?: string;
+  /** path inside the private "resources" bucket */
+  path?: string;
+  type?: string;
+  size?: number;
 };
 
 export type Progress = {

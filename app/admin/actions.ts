@@ -92,11 +92,16 @@ export async function saveModule(formData: FormData) {
   const cover = await uploadImage(formData.get("cover") as File | null, "modules");
   const mins = Number(str(formData, "duration_minutes")) || 0;
 
-  const resources = lines(str(formData, "resources")).map((l) => {
-    const [label, ...rest] = l.split("|");
-    const url = rest.join("|").trim() || label.trim();
-    return { label: label.trim(), url };
-  });
+  let resources: unknown[] = [];
+  try {
+    const parsed = JSON.parse(str(formData, "resources_json") || "[]");
+    if (Array.isArray(parsed))
+      resources = parsed
+        .filter((r) => r && typeof r.label === "string" && (typeof r.path === "string" || /^https?:\/\//.test(r.url ?? "")))
+        .map((r) => ({ label: String(r.label).slice(0, 200), path: r.path, url: r.url, type: r.type, size: r.size }));
+  } catch {
+    resources = [];
+  }
 
   const row: Record<string, unknown> = {
     course_id: str(formData, "course_id"),
@@ -109,7 +114,6 @@ export async function saveModule(formData: FormData) {
     summary: str(formData, "summary"),
     takeaways: lines(str(formData, "takeaways")),
     resources,
-    pass_percent: Math.min(100, Math.max(0, Number(str(formData, "pass_percent")) || 60)),
     popup_enabled: formData.get("popup_enabled") === "on",
     popup_interval_minutes: Math.max(1, Number(str(formData, "popup_interval_minutes")) || 15),
     popup_type: str(formData, "popup_type") === "message" ? "message" : "attention",
@@ -143,35 +147,6 @@ export async function deleteModule(formData: FormData) {
   await admin.from("modules").delete().eq("id", str(formData, "id"));
   revalidatePath("/", "layout");
   redirect("/admin/modules");
-}
-
-/* ---------------- Quiz ---------------- */
-export async function saveQuestion(formData: FormData) {
-  await requireAdmin();
-  const admin = createAdminClient();
-  const id = str(formData, "id");
-  const moduleId = str(formData, "module_id");
-  const options = [0, 1, 2, 3, 4].map((i) => str(formData, `opt${i}`)).filter(Boolean);
-  if (options.length < 2) throw new Error("Add at least 2 options");
-  const correct = Math.min(options.length - 1, Number(str(formData, "correct_index")) || 0);
-  const row = {
-    module_id: moduleId,
-    position: Number(str(formData, "position")) || 0,
-    question: str(formData, "question"),
-    options,
-    correct_index: correct,
-    explanation: str(formData, "explanation") || null,
-  };
-  const { error } = id ? await admin.from("quiz_questions").update(row).eq("id", id) : await admin.from("quiz_questions").insert(row);
-  if (error) throw new Error(error.message);
-  revalidatePath(`/admin/modules/${moduleId}`);
-}
-
-export async function deleteQuestion(formData: FormData) {
-  await requireAdmin();
-  const admin = createAdminClient();
-  await admin.from("quiz_questions").delete().eq("id", str(formData, "id"));
-  revalidatePath(`/admin/modules/${str(formData, "module_id")}`);
 }
 
 /* ---------------- Users ---------------- */

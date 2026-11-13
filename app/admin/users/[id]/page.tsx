@@ -15,15 +15,12 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
   if (!user) notFound();
   const u = user as Profile;
 
-  const [{ data: modules }, { data: progress }, { data: attempts }, { data: certs }] = await Promise.all([
+  const [{ data: modules }, { data: progress }, { data: certs }] = await Promise.all([
     admin.from("modules").select("id, position, title, duration_seconds, course_id").eq("is_published", true).order("position"),
     admin.from("module_progress").select("*").eq("user_id", id),
-    admin.from("quiz_attempts").select("module_id, score, passed, created_at").eq("user_id", id).order("created_at", { ascending: false }),
     admin.from("certificates").select("id, issued_at, revoked").eq("user_id", id),
   ]);
   const pmap = new Map((progress ?? []).map((p) => [p.module_id, p]));
-  const attemptCount = new Map<string, number>();
-  for (const a of attempts ?? []) attemptCount.set(a.module_id, (attemptCount.get(a.module_id) ?? 0) + 1);
   const totalWatched = (progress ?? []).reduce((a, p) => a + (p.watched_seconds ?? 0), 0);
   const completed = (progress ?? []).filter((p) => p.completed_at).length;
 
@@ -73,7 +70,7 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-line bg-cream/60 text-xs uppercase tracking-wide text-muted">
               <tr>
-                {["Module", "Watched", "Furthest point", "Quiz", "Completed", ""].map((h) => (
+                {["Module", "Watched", "Furthest point", "Completed", ""].map((h) => (
                   <th key={h} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -91,10 +88,6 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
                         <div className="h-1.5 w-16 overflow-hidden rounded-full bg-cream"><div className="h-full bg-brand" style={{ width: `${pct}%` }} /></div>
                         {pct}%
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {p?.best_score != null ? `${p.best_score}%` : "—"}
-                      {attemptCount.get(m.id) ? <span className="text-muted"> ({attemptCount.get(m.id)} tries)</span> : null}
                     </td>
                     <td className="px-4 py-3">{p?.completed_at ? fmtDate(p.completed_at) : "—"}</td>
                     <td className="px-4 py-3">

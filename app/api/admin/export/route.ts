@@ -16,12 +16,12 @@ export async function GET() {
   const { rows, totalModules } = await getUserRows();
   const header = [
     "Name", "Email", "Phone", "WhatsApp", "School", "Designation", "Board", "Students", "City", "State",
-    "Joined", "Onboarded", "Modules completed", "Total modules", "Minutes watched", "Avg quiz %", "Certificate", "Last active", "Role",
+    "Joined", "Onboarded", "Modules completed", "Total modules", "Minutes watched", "Certificate", "Last active", "Role",
   ];
   const body = rows.map((r) =>
     [
       r.full_name, r.email, r.phone, r.whatsapp, r.school_name, r.designation, r.school_board, r.student_count, r.city, r.state,
-      r.created_at, r.onboarded_at, r.modules_completed, totalModules, Math.round(r.watched_seconds / 60), r.avg_score,
+      r.created_at, r.onboarded_at, r.modules_completed, totalModules, Math.round(r.watched_seconds / 60),
       r.has_certificate ? "Yes" : "No", r.last_active_at, r.role,
     ].map(csvCell).join(",")
   );

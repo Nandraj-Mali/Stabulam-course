@@ -11,11 +11,8 @@ export default async function ModulesAdmin() {
   const { data: courses } = await admin.from("courses").select("*").order("created_at");
   const { data: modules } = await admin
     .from("modules")
-    .select("id, course_id, position, title, cover_url, duration_seconds, popup_enabled, popup_interval_minutes, video_provider_id, video_url, is_published")
+    .select("id, course_id, position, title, cover_url, duration_seconds, popup_enabled, popup_interval_minutes, video_provider_id, video_url, resources, is_published")
     .order("position");
-  const { data: qcount } = await admin.from("quiz_questions").select("module_id");
-  const qmap = new Map<string, number>();
-  for (const q of qcount ?? []) qmap.set(q.module_id, (qmap.get(q.module_id) ?? 0) + 1);
 
   return (
     <div className="space-y-10">
@@ -81,7 +78,7 @@ export default async function ModulesAdmin() {
                         {m.video_provider_id || m.video_url ? <Video className="h-3.5 w-3.5" /> : <VideoOff className="h-3.5 w-3.5 text-brand" />}
                         {m.video_provider_id || m.video_url ? fmtDuration(m.duration_seconds) : "No video"}
                       </span>
-                      <span>{qmap.get(m.id) ?? 0} quiz questions</span>
+                      <span>{(m.resources as unknown[] | null)?.length ?? 0} resources</span>
                       {m.popup_enabled && (
                         <span className="inline-flex items-center gap-1 text-brand"><Bell className="h-3.5 w-3.5" /> Popup every {m.popup_interval_minutes}m</span>
                       )}

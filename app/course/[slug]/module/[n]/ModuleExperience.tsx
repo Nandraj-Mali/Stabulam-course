@@ -4,7 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Loader2, PlayCircle, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, PlayCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Popup = {
@@ -24,9 +24,6 @@ type Props = {
   maxPosition: number;
   videoCompleted: boolean;
   moduleCompleted: boolean;
-  hasQuiz: boolean;
-  passPercent: number;
-  bestScore: number | null;
   popup: Popup;
   nextHref: string;
   nextLabel: string;
@@ -93,12 +90,10 @@ export function ModuleExperience(p: Props) {
     if (data?.video_completed && !freeSeek.current) {
       freeSeek.current = true;
       setVideoDone(true);
-      if (!p.hasQuiz) {
-        setModuleDone(true);
-        router.refresh();
-      }
+      setModuleDone(true);
+      router.refresh();
     }
-  }, [supabase, p.moduleId, p.hasQuiz, router]);
+  }, [supabase, p.moduleId, router]);
 
   // Called by both player types on every time update
   const onTime = useCallback((t: number, d?: number) => {
@@ -248,9 +243,9 @@ export function ModuleExperience(p: Props) {
           {moduleDone ? (
             <><CheckCircle2 className="h-5 w-5 text-brand" /> Module completed</>
           ) : videoDone ? (
-            <><CheckCircle2 className="h-5 w-5 text-ink" /> Video completed {p.hasQuiz && "· pass the quiz below to unlock the next module"}</>
+            <><CheckCircle2 className="h-5 w-5 text-ink" /> Video completed</>
           ) : (
-            <span className="text-muted">Watch at least 90% of the video{p.hasQuiz ? ", then pass the quiz" : ""} to unlock the next module.</span>
+            <span className="text-muted">Watch at least 90% of the video to unlock the next module.</span>
           )}
         </div>
         {moduleDone && (
@@ -258,20 +253,6 @@ export function ModuleExperience(p: Props) {
         )}
       </div>
 
-      {p.hasQuiz && videoDone && (
-        <Quiz
-          moduleId={p.moduleId}
-          passPercent={p.passPercent}
-          bestScore={p.bestScore}
-          alreadyPassed={moduleDone}
-          onPassed={() => {
-            setModuleDone(true);
-            router.refresh();
-          }}
-          nextHref={p.nextHref}
-          nextLabel={p.nextLabel}
-        />
-      )}
 
       {showPopup && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
@@ -308,128 +289,3 @@ export function ModuleExperience(p: Props) {
   );
 }
 
-type Q = { id: string; position: number; question: string; options: string[] };
-type Result = {
-  score: number;
-  passed: boolean;
-  correct: number;
-  total: number;
-  pass_percent: number;
-  results: { id: string; picked: number | null; correct_index: number; is_correct: boolean; explanation: string | null }[];
-};
-
-function Quiz(props: {
-  moduleId: string;
-  passPercent: number;
-  bestScore: number | null;
-  alreadyPassed: boolean;
-  onPassed: () => void;
-  nextHref: string;
-  nextLabel: string;
-}) {
-  const supabase = useRef(createClient()).current;
-  const [qs, setQs] = useState<Q[] | null>(null);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [result, setResult] = useState<Result | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.rpc("get_quiz", { p_module: props.moduleId }).then(({ data, error }) => {
-      if (error) setErr(error.message);
-      else setQs((data ?? []) as Q[]);
-    });
-  }, [supabase, props.moduleId]);
-
-  async function submit() {
-    setBusy(true);
-    setErr(null);
-    const { data, error } = await supabase.rpc("submit_quiz", { p_module: props.moduleId, p_answers: answers });
-    setBusy(false);
-    if (error) return setErr(error.message);
-    const r = data as Result;
-    setResult(r);
-    if (r.passed) props.onPassed();
-    window.scrollTo({ top: document.getElementById("quiz")!.offsetTop - 20, behavior: "smooth" });
-  }
-
-  if (!qs) return <div className="mt-8 flex items-center gap-2 text-muted"><Loader2 className="h-4 w-4 animate-spin" /> Loading quiz…</div>;
-  const byId = new Map(result?.results.map((r) => [r.id, r]));
-  const allAnswered = qs.every((q) => answers[q.id] !== undefined);
-
-  return (
-    <section id="quiz" className="mt-10 rounded-[22px] border border-line p-6 sm:p-8">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <p className="eyebrow">Module quiz</p>
-          <h2 className="mt-1 text-2xl font-bold">Test your understanding</h2>
-        </div>
-        <p className="text-sm text-muted">
-          Pass mark {props.passPercent}%{props.bestScore != null && ` · Best score ${props.bestScore}%`}
-        </p>
-      </div>
-
-      {result && (
-        <div className={`mt-6 flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between ${result.passed ? "bg-cream" : "bg-brand-soft"}`}>
-          <p className="font-medium">
-            {result.passed ? "🎉 Passed!" : "Not quite."} You scored {result.score}% ({result.correct}/{result.total}).
-            {!result.passed && ` You need ${result.pass_percent}% to pass.`}
-          </p>
-          {result.passed ? (
-            <Link href={props.nextHref} className="btn-primary">{props.nextLabel} →</Link>
-          ) : (
-            <button className="btn-dark" onClick={() => { setResult(null); setAnswers({}); }}>
-              <RotateCcw className="h-4 w-4" /> Try again
-            </button>
-          )}
-        </div>
-      )}
-
-      <ol className="mt-6 space-y-6">
-        {qs.map((q, i) => {
-          const r = byId.get(q.id);
-          return (
-            <li key={q.id}>
-              <p className="font-semibold">{i + 1}. {q.question}</p>
-              <div className="mt-3 grid gap-2">
-                {q.options.map((opt, oi) => {
-                  const picked = answers[q.id] === oi;
-                  const isCorrect = r && oi === r.correct_index;
-                  const isWrongPick = r && picked && !r.is_correct;
-                  return (
-                    <label
-                      key={oi}
-                      className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition ${
-                        isCorrect ? "border-ink bg-cream" : isWrongPick ? "border-brand bg-brand-soft" : picked ? "border-ink" : "border-line hover:border-ink/40"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name={q.id}
-                        className="accent-[#e11d2e]"
-                        checked={picked}
-                        disabled={!!result}
-                        onChange={() => setAnswers((a) => ({ ...a, [q.id]: oi }))}
-                      />
-                      <span className="flex-1">{opt}</span>
-                      {isCorrect && <CheckCircle2 className="h-5 w-5 text-ink" />}
-                      {isWrongPick && <XCircle className="h-5 w-5 text-brand" />}
-                    </label>
-                  );
-                })}
-              </div>
-              {r?.explanation && <p className="mt-2 text-sm text-muted">💡 {r.explanation}</p>}
-            </li>
-          );
-        })}
-      </ol>
-
-      {err && <p className="mt-4 rounded-lg bg-brand-soft px-3.5 py-2.5 text-sm text-brand-dark">{err}</p>}
-      {!result && (
-        <button onClick={submit} disabled={!allAnswered || busy} className="btn-primary mt-6 px-7 py-3">
-          {busy && <Loader2 className="h-4 w-4 animate-spin" />} Submit answers
-        </button>
-      )}
-    </section>
-  );
-}
