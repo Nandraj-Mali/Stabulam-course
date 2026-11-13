@@ -22,6 +22,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   whatsapp_number: "919999999999",
   whatsapp_message: "Hi! I have a question about the course.",
   footer_text: "© Stabulam. All rights reserved.",
+  footer_text_2: "Made for schools across India",
   certificate: { signatory_name: "Course Director", signatory_title: "Stabulam" },
 };
 

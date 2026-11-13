@@ -51,6 +51,7 @@ export async function saveSettings(formData: FormData) {
     whatsapp_number: str(formData, "whatsapp_number").replace(/\D/g, ""),
     whatsapp_message: str(formData, "whatsapp_message"),
     footer_text: str(formData, "footer_text"),
+    footer_text_2: str(formData, "footer_text_2"),
     certificate: {
       signatory_name: str(formData, "signatory_name"),
       signatory_title: str(formData, "signatory_title"),

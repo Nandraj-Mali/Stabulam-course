@@ -21,6 +21,7 @@ export type SiteSettings = {
   whatsapp_number: string | null;
   whatsapp_message: string | null;
   footer_text: string | null;
+  footer_text_2: string | null;
   certificate: { signatory_name?: string; signatory_title?: string };
 };
 

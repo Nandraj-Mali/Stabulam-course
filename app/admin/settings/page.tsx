@@ -42,7 +42,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               {s.logo_url && <label className="flex items-center gap-2 text-sm text-muted"><input type="checkbox" name="remove_logo" /> Remove logo</label>}
             </div>
           </div>
-          <div className="sm:col-span-2"><label className="label">Footer text</label><input name="footer_text" defaultValue={s.footer_text ?? ""} className="input" /></div>
+          <div><label className="label">Footer line 1 (left)</label><input name="footer_text" defaultValue={s.footer_text ?? ""} className="input" /></div>
+          <div><label className="label">Footer line 2 (right)</label><input name="footer_text_2" defaultValue={s.footer_text_2 ?? ""} className="input" placeholder="Leave empty to hide" /></div>
         </fieldset>
 
         <fieldset className="card grid gap-4 p-6 sm:grid-cols-2">
