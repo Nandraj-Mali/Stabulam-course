@@ -37,6 +37,7 @@ export type Profile = {
   city: string | null;
   state: string | null;
   school_board: string | null;
+  institution_type: string | null;
   student_count: string | null;
   whatsapp: string | null;
   onboarded_at: string | null;

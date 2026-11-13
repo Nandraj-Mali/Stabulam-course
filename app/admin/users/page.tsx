@@ -30,7 +30,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       <form className="mt-6 flex flex-wrap gap-3">
         <div className="relative min-w-[240px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <input name="q" defaultValue={q} placeholder="Search name, email, phone, school, city" className="input pl-9" />
+          <input name="q" defaultValue={q} placeholder="Search name, email, phone, institution, city" className="input pl-9" />
         </div>
         <select name="filter" defaultValue={filter} className="input w-auto">
           <option value="all">All users</option>
@@ -45,7 +45,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
         <table className="w-full min-w-[960px] text-left text-sm">
           <thead className="border-b border-line bg-cream/60 text-xs uppercase tracking-wide text-muted">
             <tr>
-              {["Name", "School", "Phone", "Joined", "Modules", "Watched", "Last active", "Cert"].map((h) => (
+              {["Name", "Institution", "Phone", "Joined", "Modules", "Watched", "Last active", "Cert"].map((h) => (
                 <th key={h} className="px-4 py-3 font-semibold">{h}</th>
               ))}
             </tr>
@@ -60,7 +60,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                 </td>
                 <td className="px-4 py-3">
                   <p>{u.school_name ?? <span className="text-muted">Not onboarded</span>}</p>
-                  <p className="text-muted">{[u.designation, u.city].filter(Boolean).join(" · ")}</p>
+                  <p className="text-muted">{[u.institution_type, u.designation, u.city].filter(Boolean).join(" · ")}</p>
                 </td>
                 <td className="px-4 py-3">{u.phone ?? "—"}</td>
                 <td className="px-4 py-3">{fmtDate(u.created_at)}</td>

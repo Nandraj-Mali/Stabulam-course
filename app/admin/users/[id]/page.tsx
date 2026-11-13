@@ -25,8 +25,8 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
   const completed = (progress ?? []).filter((p) => p.completed_at).length;
 
   const info: [string, string | null][] = [
-    ["Email", u.email], ["Phone", u.phone], ["WhatsApp", u.whatsapp], ["School", u.school_name],
-    ["Designation", u.designation], ["Board", u.school_board], ["Students", u.student_count],
+    ["Email", u.email], ["Phone", u.phone], ["WhatsApp", u.whatsapp], ["Institution", u.school_name],
+    ["Institution type", u.institution_type], ["Role", u.designation],
     ["City / State", [u.city, u.state].filter(Boolean).join(", ")], ["Joined", fmtDate(u.created_at)],
     ["Onboarded", fmtDate(u.onboarded_at)], ["Last active", fmtDate(u.last_active_at)],
   ];
