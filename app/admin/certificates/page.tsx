@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { certHref } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
 import { toggleRevoke } from "../actions";
@@ -28,7 +29,7 @@ export default async function CertificatesAdmin() {
               const co = c.courses as unknown as { title: string } | null;
               return (
                 <tr key={c.id}>
-                  <td className="px-4 py-3 font-mono"><a href={`/api/certificate/${c.id}`} target="_blank" className="hover:text-brand">{c.id}</a></td>
+                  <td className="px-4 py-3 font-mono"><a href={certHref(c.id)} target="_blank" className="hover:text-brand">{c.id}</a></td>
                   <td className="px-4 py-3"><Link href={`/admin/users/${c.user_id}`} className="hover:text-brand">{p?.full_name}</Link></td>
                   <td className="px-4 py-3">{p?.school_name}</td>
                   <td className="px-4 py-3">{co?.title}</td>

@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="certificate-${cert.id}.pdf"`,
-      "Cache-Control": "private, max-age=60",
+      "Cache-Control": "no-store, max-age=0",
     },
   });
 }

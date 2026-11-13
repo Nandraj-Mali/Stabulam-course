@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { certHref } from "@/lib/format";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -60,7 +61,7 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
             ))}
           </dl>
           {certs?.map((c) => (
-            <a key={c.id} href={`/api/certificate/${c.id}`} target="_blank" className="btn-dark mt-4 w-full text-sm">
+            <a key={c.id} href={certHref(c.id)} target="_blank" className="btn-dark mt-4 w-full text-sm">
               Certificate {c.id} {c.revoked && "(revoked)"}
             </a>
           ))}

@@ -14,3 +14,8 @@ export function fmtDate(d?: string | null) {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
+
+/** Certificate PDF link; the timestamp makes every click fetch the latest design. */
+export function certHref(id: string) {
+  return `/api/certificate/${encodeURIComponent(id)}?v=${Date.now()}`;
+}

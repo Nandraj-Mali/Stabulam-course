@@ -1,4 +1,5 @@
 import { BadgeCheck, XCircle } from "lucide-react";
+import { certHref } from "@/lib/format";
 import { Navbar } from "@/components/Navbar";
 import { createClient } from "@/lib/supabase/server";
 import { fmtDate } from "@/lib/format";
@@ -34,7 +35,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ id: str
                   </div>
                 ))}
               </dl>
-              <a href={`/api/certificate/${c.id}`} target="_blank" className="btn-dark mt-6">View certificate</a>
+              <a href={certHref(c.id)} target="_blank" className="btn-dark mt-6">View certificate</a>
             </>
           ) : (
             <>

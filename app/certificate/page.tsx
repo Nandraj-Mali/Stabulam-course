@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { certHref } from "@/lib/format";
 import { Award, Download, Share2, ShieldCheck } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
@@ -50,7 +51,7 @@ export default async function CertificatePage() {
                   <p className="mt-2 text-lg text-white/80">You&apos;ve completed <b>{course.title}</b>.</p>
                   <p className="mt-1 text-sm text-white/60">Certificate ID {certId} · Issued {fmtDate(issued)}</p>
                   <div className="mt-8 flex flex-wrap gap-3">
-                    <a href={`/api/certificate/${certId}`} target="_blank" className="btn-primary px-6 py-3 text-base">
+                    <a href={certHref(certId)} target="_blank" className="btn-primary px-6 py-3 text-base">
                       <Download className="h-5 w-5" /> Download PDF
                     </a>
                     <Link href={`/verify/${certId}`} className="btn border border-white/30 text-white hover:bg-white/10">
