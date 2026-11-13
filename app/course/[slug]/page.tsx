@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Award, FolderOpen, Lock, PlayCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Award, FolderOpen, Gift, Lock, PlayCircle } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { ResourceCard } from "@/components/ResourceCard";
@@ -10,6 +10,8 @@ import { getCourseWithProgress } from "@/lib/course";
 import { ModuleTile, ProgressRing } from "@/components/CourseTiles";
 import { signResources } from "@/lib/resources";
 import { fmtDuration, fmtMinutes, pad2 } from "@/lib/format";
+import { BonusCard } from "@/components/BonusCard";
+import { BONUS_COLUMNS, type Bonus } from "@/lib/types";
 
 export default async function CoursePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -18,11 +20,13 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   if (!data) notFound();
 
   const pct = data.total ? Math.round((data.completed / data.total) * 100) : 0;
-  const { count: bonusCount } = await (await createClient())
-    .from("bonuses")
-    .select("id", { count: "exact", head: true })
-    .eq("course_id", data.course.id)
-    .eq("is_published", true);
+  const isAdmin = profile.role === "admin";
+  // learners see published bonuses; admins also see drafts so they can preview the layout
+  let bonusQuery = (await createClient()).from("bonuses").select(BONUS_COLUMNS).eq("course_id", data.course.id).order("position");
+  if (!isAdmin) bonusQuery = bonusQuery.eq("is_published", true);
+  const { data: bonusRows } = await bonusQuery;
+  const bonuses = (bonusRows ?? []) as Bonus[];
+  const bonusCount = bonuses.filter((b) => b.is_published).length;
   const totalSec = data.modules.reduce((a, m) => a + (m.duration_seconds || 0), 0);
 
   // Resources from unlocked modules only (signed, short-lived links)
@@ -114,6 +118,37 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             )}
           </div>
         </section>
+
+        {/* BONUSES */}
+        {bonuses.length > 0 && (
+          <section className="mt-16">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand text-white"><Gift className="h-5 w-5" /></span>
+                <div>
+                  <p className="eyebrow">{data.allDone ? "Unlocked" : "Unlocks with your certificate"}</p>
+                  <h2 className="text-2xl font-bold sm:text-3xl">{bonuses.length} exclusive bonus{bonuses.length > 1 ? "es" : ""}</h2>
+                </div>
+              </div>
+              {!data.allDone && <p className="text-sm text-muted">Finish all {data.total} modules to download them.</p>}
+            </div>
+            {isAdmin && bonuses.some((b) => !b.is_published) && (
+              <p className="mt-4 rounded-xl bg-brand-soft px-4 py-3 text-sm text-brand-dark">
+                Admin view: cards marked DRAFT are hidden from learners. Publish them in Admin → Bonuses.
+              </p>
+            )}
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {bonuses.map((b, i) => (
+                <div key={b.id} className="relative">
+                  {!b.is_published && (
+                    <span className="absolute -top-2 right-3 z-10 rounded-md bg-ink px-2 py-0.5 text-[11px] font-bold text-white">DRAFT</span>
+                  )}
+                  <BonusCard b={b} index={i + 1} unlocked={data.allDone || isAdmin} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* RESOURCES LIBRARY */}
         <section className="mt-16">
